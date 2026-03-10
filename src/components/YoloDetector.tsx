@@ -555,32 +555,32 @@ TASK:
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-[#0A0D2A] border border-[#1E2548] rounded-xl overflow-hidden shadow-2xl max-w-5xl w-full relative flex flex-col"
+                            className="bg-[#0A0D2A] border border-[#1E2548] rounded-xl overflow-hidden shadow-2xl max-w-5xl w-full max-h-[90vh] relative flex flex-col"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981]" />
-                            <div className="flex items-center justify-between p-4 border-b border-[#1E2548] bg-[#060818]/50">
-                                <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2">
-                                    <Video className="w-4 h-4 text-cyan-400" />
+                            <div className="shrink-0 flex items-center justify-between p-4 border-b border-[#1E2548] bg-[#060818]/50 z-10 relative shadow-md">
+                                <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2 text-sm">
+                                    <Video className="w-5 h-5 text-cyan-400 animate-pulse" />
                                     [ LIVE STREAM // CAM_{viewingCameraId.substring(0, 4)} ]
                                 </h3>
                                 <button
                                     onClick={() => setViewingCameraId(null)}
-                                    className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                                    className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:scale-105 active:scale-95"
                                     title="Close View"
                                 >
                                     CLOSE FEED
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
-                            <div className="p-4 bg-black relative flex items-center justify-center min-h-[300px] sm:min-h-[500px]">
+                            <div className="flex-1 bg-black relative flex items-center justify-center overflow-hidden min-h-[300px] sm:min-h-[500px]">
                                 {/* Animated scanning line overlay */}
                                 <div className="absolute inset-x-0 top-0 h-[2px] bg-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.8)] z-10 animate-scan pointer-events-none" />
                                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
                                 <img
                                     src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
                                     alt="Live Camera Feed"
-                                    className="max-w-full max-h-[70vh] object-contain relative z-0"
+                                    className="w-full h-full object-contain relative z-0"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).style.display = 'none';
                                         (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
