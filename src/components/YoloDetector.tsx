@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData } from '../api/types';
-import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X, Maximize2, Minimize2 } from 'lucide-react';
+import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
@@ -16,7 +16,6 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [error, setError] = useState<string | null>(null);
     const [activeCameras, setActiveCameras] = useState<CameraData[]>([]);
     const [viewingCameraId, setViewingCameraId] = useState<string | null>(null);
-    const [isStreamExpanded, setIsStreamExpanded] = useState(false);
 
     const sourceRef = useRef<EventSource | null>(null);
 
@@ -545,99 +544,62 @@ TASK:
             {/* Live Camera Feed Modal / PiP */}
             <AnimatePresence>
                 {viewingCameraId && (
-                    <>
-                        {/* Dimmer backdrop only for expanded mode */}
-                        {isStreamExpanded && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md"
-                                onClick={() => {
+                    <motion.div
+                        layout
+                        initial={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
+                        animate={{ scale: 1, opacity: 1, y: 0, x: 0 }}
+                        exit={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        className="fixed z-[70] bg-[#0A0D2A] border border-[#1E2548] overflow-hidden shadow-2xl flex flex-col bottom-6 right-6 w-[320px] sm:w-[480px] h-[220px] sm:h-[320px] rounded-lg border-cyan-500/30 hover:border-cyan-500 transition-colors cursor-move"
+                    >
+                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981] z-50 pointer-events-none" />
+
+                        {/* Header */}
+                        <div className="shrink-0 flex items-center justify-between p-3 border-b border-[#1E2548] bg-[#060818]/90 z-40 relative shadow-md">
+                            <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2 text-[10px]">
+                                <Video className="w-3 h-3 text-cyan-400 animate-pulse" />
+                                [ CAM_{viewingCameraId.substring(0, 4)} ]
+                            </h3>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     setViewingCameraId(null);
-                                    setIsStreamExpanded(false);
+                                }}
+                                className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-widest uppercase transition-all border border-red-500/20 hover:scale-105 active:scale-95"
+                                title="Close Feed"
+                            >
+                                <span className="hidden sm:inline">CLOSE</span>
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        {/* Video Container */}
+                        <div className="flex-1 min-h-0 bg-black relative flex items-center justify-center overflow-hidden w-full h-full">
+                            {/* Animated overlays */}
+                            <div className="absolute inset-x-0 top-0 h-[2px] bg-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.5)] z-10 animate-scan pointer-events-none" />
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
+
+                            <img
+                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
+                                alt="Live Camera Feed"
+                                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                                 }}
                             />
-                        )}
-
-                        <motion.div
-                            layout
-                            initial={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
-                            animate={{ scale: 1, opacity: 1, y: 0, x: 0 }}
-                            exit={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className={`fixed z-[70] bg-[#0A0D2A] border border-[#1E2548] overflow-hidden shadow-2xl flex flex-col ${isStreamExpanded
-                                ? 'bottom-4 right-4 sm:bottom-10 sm:right-10 md:bottom-[10vh] md:right-[5vw] w-[calc(100vw-32px)] sm:w-[calc(100vw-80px)] md:w-[90vw] h-[calc(100vh-32px)] sm:h-[calc(100vh-80px)] md:h-[80vh] max-w-6xl rounded-xl'
-                                : 'bottom-6 right-6 w-[320px] sm:w-[480px] h-[220px] sm:h-[320px] rounded-lg border-cyan-500/30 hover:border-cyan-500 transition-colors cursor-move'
-                                }`}
-                            onClick={(e) => isStreamExpanded ? e.stopPropagation() : null}
-                        >
-                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981] z-50 pointer-events-none" />
-
-                            {/* Header */}
-                            <div className="shrink-0 flex items-center justify-between p-3 border-b border-[#1E2548] bg-[#060818]/90 z-40 relative shadow-md">
-                                <h3 className={`text-white font-mono font-bold tracking-widest flex items-center gap-2 ${isStreamExpanded ? 'text-sm' : 'text-[10px]'}`}>
-                                    <Video className={`${isStreamExpanded ? 'w-5 h-5' : 'w-3 h-3'} text-cyan-400 animate-pulse`} />
-                                    [ CAM_{viewingCameraId.substring(0, 4)} ]
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsStreamExpanded(!isStreamExpanded);
-                                        }}
-                                        className="p-1.5 text-cyan-500 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 rounded transition-colors border border-cyan-500/20 group relative"
-                                        title={isStreamExpanded ? "Compress to Corner" : "Expand to Full"}
-                                    >
-                                        {isStreamExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setViewingCameraId(null);
-                                            setIsStreamExpanded(false);
-                                        }}
-                                        className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-widest uppercase transition-all border border-red-500/20 hover:scale-105 active:scale-95"
-                                        title="Close Feed"
-                                    >
-                                        <span className={isStreamExpanded ? 'inline' : 'hidden sm:inline'}>CLOSE</span>
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
+                            <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm text-center px-4">
+                                <AlertCircle className="w-6 h-6 text-red-500/50 mb-2" />
+                                <span className="text-[10px]">CONNECTION FAILED</span>
                             </div>
 
-                            {/* Video Container */}
-                            <div className="flex-1 min-h-0 bg-black relative flex items-center justify-center overflow-hidden w-full h-full">
-                                {/* Animated overlays */}
-                                <div className="absolute inset-x-0 top-0 h-[2px] bg-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.5)] z-10 animate-scan pointer-events-none" />
-                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
-
-                                <img
-                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
-                                    alt="Live Camera Feed"
-                                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                                    }}
-                                />
-                                <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm text-center px-4">
-                                    <AlertCircle className="w-6 h-6 text-red-500/50 mb-2" />
-                                    <span className="text-[10px]">CONNECTION FAILED</span>
-                                </div>
-
-                                {/* Corner Accents for PIP mode */}
-                                {!isStreamExpanded && (
-                                    <>
-                                        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500/50 pointer-events-none z-20 m-1" />
-                                        <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500/50 pointer-events-none z-20 m-1" />
-                                        <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500/50 pointer-events-none z-20 m-1" />
-                                        <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500/50 pointer-events-none z-20 m-1" />
-                                    </>
-                                )}
-                            </div>
-                        </motion.div>
-                    </>
+                            {/* Corner Accents for PIP mode */}
+                            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500/50 pointer-events-none z-20 m-1" />
+                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500/50 pointer-events-none z-20 m-1" />
+                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500/50 pointer-events-none z-20 m-1" />
+                            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500/50 pointer-events-none z-20 m-1" />
+                        </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
