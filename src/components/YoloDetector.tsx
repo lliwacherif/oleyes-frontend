@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData } from '../api/types';
-import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video } from 'lucide-react';
+import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
@@ -15,6 +15,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeCameras, setActiveCameras] = useState<CameraData[]>([]);
+    const [viewingCameraId, setViewingCameraId] = useState<string | null>(null);
 
     const sourceRef = useRef<EventSource | null>(null);
 
@@ -238,15 +239,25 @@ TASK:
                                         </div>
                                     </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => startDetection(cam.rtsp_url)}
-                                    disabled={isLoading}
-                                    className="px-4 py-2 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 rounded hover:bg-[#10B981]/20 disabled:opacity-50 transition-colors flex items-center gap-2 self-start sm:self-auto"
-                                >
-                                    <Play className="w-3 h-3" />
-                                    EXECUTE
-                                </button>
+                                <div className="flex items-center gap-2 self-start sm:self-auto">
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewingCameraId(cam.id)}
+                                        className="px-3 py-2 bg-[#06B6D4]/10 text-[#06B6D4] border border-[#06B6D4]/30 rounded hover:bg-[#06B6D4]/20 transition-colors flex items-center gap-2"
+                                    >
+                                        <Eye className="w-3 h-3" />
+                                        VIEW
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => startDetection(cam.rtsp_url)}
+                                        disabled={isLoading}
+                                        className="px-4 py-2 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 rounded hover:bg-[#10B981]/20 disabled:opacity-50 transition-colors flex items-center gap-2"
+                                    >
+                                        <Play className="w-3 h-3" />
+                                        EXECUTE
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -529,6 +540,59 @@ TASK:
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Live Camera Feed Modal */}
+            <AnimatePresence>
+                {viewingCameraId && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-[#0A0D2A] border border-[#1E2548] rounded-xl overflow-hidden shadow-2xl max-w-5xl w-full relative flex flex-col"
+                        >
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981]" />
+                            <div className="flex items-center justify-between p-4 border-b border-[#1E2548] bg-[#060818]/50">
+                                <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2">
+                                    <Video className="w-4 h-4 text-cyan-400" />
+                                    [ LIVE STREAM // CAM_{viewingCameraId.substring(0, 4)} ]
+                                </h3>
+                                <button
+                                    onClick={() => setViewingCameraId(null)}
+                                    className="p-1 text-[#64748B] hover:text-white hover:bg-white/10 rounded transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="p-4 bg-black relative flex items-center justify-center min-h-[300px] sm:min-h-[500px]">
+                                {/* Animated scanning line overlay */}
+                                <div className="absolute inset-x-0 top-0 h-[2px] bg-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.8)] z-10 animate-scan pointer-events-none" />
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+                                <img
+                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
+                                    alt="Live Camera Feed"
+                                    className="max-w-full max-h-[70vh] object-contain relative z-0"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                />
+                                <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm">
+                                    <AlertCircle className="w-8 h-8 text-red-500/50 mb-3" />
+                                    STREAM CONNECTION FAILED
+                                    <span className="text-xs mt-2 opacity-50">Is the backend OpenCV stream running?</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 }
