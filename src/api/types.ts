@@ -68,6 +68,12 @@ export interface YoloDetectRequest {
     scene_context?: string;
 }
 
+export interface YoloDetectRtspRequest {
+    rtsp_url: string;
+    callback_url?: string;
+    scene_context?: string;
+}
+
 export interface YoloJobResponse {
     job_id: string;
     status: 'queued' | 'running' | 'done' | 'failed' | 'error';

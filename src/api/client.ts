@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ChatRequest, ChatResponse, YoloDetectRequest, YoloJobResponse, ContextData, ContextResponse, CameraData, CreateCameraData, UpdateCameraData } from './types';
+import type { ChatRequest, ChatResponse, YoloDetectRequest, YoloDetectRtspRequest, YoloJobResponse, ContextData, ContextResponse, CameraData, CreateCameraData, UpdateCameraData } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -89,6 +89,15 @@ export const api = {
             scene_context: sceneContext
         };
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-youtube', payload);
+        return response.data;
+    },
+
+    detectRtsp: async (url: string, sceneContext?: string): Promise<YoloJobResponse> => {
+        const payload: YoloDetectRtspRequest = {
+            rtsp_url: url,
+            scene_context: sceneContext
+        };
+        const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtsp', payload);
         return response.data;
     },
 

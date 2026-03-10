@@ -93,11 +93,16 @@ TASK:
         setLlmAnalysis(null);
 
         try {
-            // Trim and ensure protocol
             const cleanUrl = targetUrl.trim();
-            const validUrl = cleanUrl.startsWith('http') || cleanUrl.startsWith('rtsp') ? cleanUrl : `https://${cleanUrl}`;
+            let resp;
 
-            const resp = await api.detectYoutube(validUrl, sceneContext);
+            if (cleanUrl.toLowerCase().startsWith('rtsp://')) {
+                resp = await api.detectRtsp(cleanUrl, sceneContext);
+            } else {
+                const validUrl = cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`;
+                resp = await api.detectYoutube(validUrl, sceneContext);
+            }
+
             setJobId(resp.job_id);
             setStatus(resp.status);
         } catch (err: any) {
