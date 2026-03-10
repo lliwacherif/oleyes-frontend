@@ -549,12 +549,14 @@ TASK:
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+                        onClick={() => setViewingCameraId(null)}
                     >
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
                             className="bg-[#0A0D2A] border border-[#1E2548] rounded-xl overflow-hidden shadow-2xl max-w-5xl w-full relative flex flex-col"
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981]" />
                             <div className="flex items-center justify-between p-4 border-b border-[#1E2548] bg-[#060818]/50">
@@ -564,9 +566,11 @@ TASK:
                                 </h3>
                                 <button
                                     onClick={() => setViewingCameraId(null)}
-                                    className="p-1 text-[#64748B] hover:text-white hover:bg-white/10 rounded transition-colors"
+                                    className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                                    title="Close View"
                                 >
-                                    <X className="w-5 h-5" />
+                                    CLOSE FEED
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
                             <div className="p-4 bg-black relative flex items-center justify-center min-h-[300px] sm:min-h-[500px]">
