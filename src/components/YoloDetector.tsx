@@ -567,8 +567,8 @@ TASK:
                             exit={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
                             className={`fixed z-[70] bg-[#0A0D2A] border border-[#1E2548] overflow-hidden shadow-2xl flex flex-col ${isStreamExpanded
-                                    ? 'inset-4 sm:inset-10 md:inset-20 rounded-xl'
-                                    : 'bottom-6 right-6 w-[320px] sm:w-[480px] h-[220px] sm:h-[320px] rounded-lg border-cyan-500/30 hover:border-cyan-500 transition-colors cursor-move'
+                                ? 'bottom-4 right-4 sm:bottom-10 sm:right-10 md:bottom-[10vh] md:right-[5vw] w-[calc(100vw-32px)] sm:w-[calc(100vw-80px)] md:w-[90vw] h-[calc(100vh-32px)] sm:h-[calc(100vh-80px)] md:h-[80vh] max-w-6xl rounded-xl'
+                                : 'bottom-6 right-6 w-[320px] sm:w-[480px] h-[220px] sm:h-[320px] rounded-lg border-cyan-500/30 hover:border-cyan-500 transition-colors cursor-move'
                                 }`}
                             onClick={(e) => isStreamExpanded ? e.stopPropagation() : null}
                         >
