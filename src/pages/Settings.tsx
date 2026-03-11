@@ -23,14 +23,16 @@ export function Settings() {
         business_name: '',
         short_description: '',
         number_of_locations: '',
-        estimated_number_of_cameras: '',
+        estimated_cameras: '',
         business_size: '',
         camera_type: '',
-        theft_detection: false,
-        suspicious_behavior_detection: false,
-        loitering_detection: false,
-        employee_monitoring: false,
-        customer_behavior_analytics: false,
+        security_priorities: {
+            theft_detection: false,
+            suspicious_behavior_detection: false,
+            loitering_detection: false,
+            employee_monitoring: false,
+            customer_behavior_analytics: false,
+        }
     });
 
     useEffect(() => {
@@ -118,18 +120,27 @@ export function Settings() {
         </div>
     );
 
-    const renderToggle = (label: string, field: keyof ContextData) => (
-        <div className="flex items-center justify-between py-2 mb-2 bg-black/10 px-4 rounded-xl border border-white/5">
-            <span className="text-white text-sm">{label}</span>
-            <button
-                type="button"
-                onClick={() => setContextData(prev => ({ ...prev, [field]: !prev[field] }))}
-                className={`w-10 h-5 rounded-full transition-colors relative ${contextData[field] ? 'bg-emerald-500' : 'bg-white/20'}`}
-            >
-                <div className={`w-4 h-4 rounded-full shadow-md transform transition-transform absolute top-0.5 ${contextData[field] ? 'translate-x-5 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
-            </button>
-        </div>
-    );
+    const renderToggle = (label: string, field: keyof NonNullable<ContextData['security_priorities']>) => {
+        const value = contextData.security_priorities?.[field] || false;
+        return (
+            <div className="flex items-center justify-between py-2 mb-2 bg-black/10 px-4 rounded-xl border border-white/5">
+                <span className="text-white text-sm">{label}</span>
+                <button
+                    type="button"
+                    onClick={() => setContextData(prev => ({
+                        ...prev,
+                        security_priorities: {
+                            ...(prev.security_priorities || {}),
+                            [field]: !value
+                        }
+                    }))}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${value ? 'bg-emerald-500' : 'bg-white/20'}`}
+                >
+                    <div className={`w-4 h-4 rounded-full shadow-md transform transition-transform absolute top-0.5 ${value ? 'translate-x-5 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
+                </button>
+            </div>
+        );
+    };
 
     return (
         <Layout>
@@ -262,7 +273,7 @@ export function Settings() {
                                 <div>
                                     <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Camera Setup</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {renderInput('Estimated Cameras', 'estimated_number_of_cameras', 'e.g., 15', 'number')}
+                                        {renderInput('Estimated Cameras', 'estimated_cameras', 'e.g., 15', 'number')}
                                         {renderInput('Camera Type', 'camera_type', 'IP Cameras')}
                                     </div>
                                 </div>

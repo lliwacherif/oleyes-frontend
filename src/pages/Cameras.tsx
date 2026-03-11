@@ -24,8 +24,8 @@ export function Cameras() {
             let contextCount = 0;
             try {
                 const context = await api.getContext();
-                if (context && context.estimated_number_of_cameras) {
-                    const parsed = parseInt(context.estimated_number_of_cameras, 10);
+                if (context && context.estimated_cameras) {
+                    const parsed = parseInt(context.estimated_cameras, 10);
                     if (!isNaN(parsed) && parsed > 0) {
                         contextCount = parsed;
                     }

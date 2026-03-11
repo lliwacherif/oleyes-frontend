@@ -10,14 +10,16 @@ export interface ContextData {
     business_name?: string;
     short_description?: string;
     number_of_locations?: string;
-    estimated_number_of_cameras?: string;
+    estimated_cameras?: string;
     business_size?: string;
     camera_type?: string;
-    theft_detection?: boolean;
-    suspicious_behavior_detection?: boolean;
-    loitering_detection?: boolean;
-    employee_monitoring?: boolean;
-    customer_behavior_analytics?: boolean;
+    security_priorities?: {
+        theft_detection?: boolean;
+        suspicious_behavior_detection?: boolean;
+        loitering_detection?: boolean;
+        employee_monitoring?: boolean;
+        customer_behavior_analytics?: boolean;
+    };
     context_text?: string;
     environment_type?: string;
     created_at?: string;

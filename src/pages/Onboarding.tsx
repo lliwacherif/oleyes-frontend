@@ -54,17 +54,19 @@ export const Onboarding = () => {
                     if (data.business_name) setBusinessName(data.business_name);
                     if (data.short_description) setShortDescription(data.short_description);
                     if (data.number_of_locations) setLocations(data.number_of_locations);
-                    if (data.estimated_number_of_cameras) setCameras(data.estimated_number_of_cameras);
+                    if (data.estimated_cameras) setCameras(data.estimated_cameras);
                     if (data.business_size) setBusinessSize(data.business_size);
                     if (data.camera_type) setCameraType(data.camera_type);
 
-                    setPriorities({
-                        theft: data.theft_detection ?? false,
-                        suspicious: data.suspicious_behavior_detection ?? false,
-                        loitering: data.loitering_detection ?? false,
-                        employee: data.employee_monitoring ?? false,
-                        customer: data.customer_behavior_analytics ?? false,
-                    });
+                    if (data.security_priorities) {
+                        setPriorities({
+                            theft: data.security_priorities.theft_detection ?? false,
+                            suspicious: data.security_priorities.suspicious_behavior_detection ?? false,
+                            loitering: data.security_priorities.loitering_detection ?? false,
+                            employee: data.security_priorities.employee_monitoring ?? false,
+                            customer: data.security_priorities.customer_behavior_analytics ?? false,
+                        });
+                    }
                 }
             } catch (err) {
                 console.log('No existing context found or error fetching context', err);
@@ -89,14 +91,16 @@ export const Onboarding = () => {
                 business_name: businessName,
                 short_description: shortDescription,
                 number_of_locations: locations,
-                estimated_number_of_cameras: cameras,
+                estimated_cameras: cameras,
                 business_size: businessSize,
                 camera_type: cameraType,
-                theft_detection: priorities.theft ?? false,
-                suspicious_behavior_detection: priorities.suspicious ?? false,
-                loitering_detection: priorities.loitering ?? false,
-                employee_monitoring: priorities.employee ?? false,
-                customer_behavior_analytics: priorities.customer ?? false,
+                security_priorities: {
+                    theft_detection: priorities.theft ?? false,
+                    suspicious_behavior_detection: priorities.suspicious ?? false,
+                    loitering_detection: priorities.loitering ?? false,
+                    employee_monitoring: priorities.employee ?? false,
+                    customer_behavior_analytics: priorities.customer ?? false,
+                }
             };
 
             try {
