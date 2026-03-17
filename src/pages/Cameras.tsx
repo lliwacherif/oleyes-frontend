@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { api } from '../api/client';
 import type { CameraData } from '../api/types';
-import { Video, Save, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Video, Save, Loader2, AlertCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
 export function Cameras() {
     const [cameras, setCameras] = useState<CameraData[]>([]);
@@ -58,6 +58,7 @@ export function Cameras() {
     // Create a working state arrays for the form inputs
     const [inputUrls, setInputUrls] = useState<{ [index: number]: string }>({});
     const [inputActive, setInputActive] = useState<{ [index: number]: boolean }>({});
+    const [previewVisible, setPreviewVisible] = useState<{ [index: number]: boolean }>({});
 
     // Sync input states when fetched cameras change
     useEffect(() => {
@@ -73,6 +74,10 @@ export function Cameras() {
 
     const handleUrlChange = (index: number, value: string) => {
         setInputUrls(prev => ({ ...prev, [index]: value }));
+    };
+
+    const togglePreview = (index: number) => {
+        setPreviewVisible(prev => ({ ...prev, [index]: !prev[index] }));
     };
 
     const handleActiveToggle = async (index: number) => {
@@ -209,20 +214,54 @@ export function Cameras() {
                                         </div>
 
                                         <div className="w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-3">
-                                            <button
-                                                onClick={() => handleActiveToggle(i)}
-                                                disabled={!cam && !inputUrls[i]}
-                                                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none border border-[#1E2548] shadow-inner ${isActive ? 'bg-[#10B981]/20' : 'bg-[#121738] disabled:opacity-50'}`}
-                                            >
-                                                <span className={`inline-block h-5 w-5 transform rounded-full transition-transform ${isActive ? 'translate-x-8 bg-[#10B981] shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'translate-x-1 bg-[#64748B]'}`} />
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleActiveToggle(i)}
+                                                    disabled={!cam && !inputUrls[i]}
+                                                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none border border-[#1E2548] shadow-inner ${isActive ? 'bg-[#10B981]/20' : 'bg-[#121738] disabled:opacity-50'}`}
+                                                >
+                                                    <span className={`inline-block h-5 w-5 transform rounded-full transition-transform ${isActive ? 'translate-x-8 bg-[#10B981] shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'translate-x-1 bg-[#64748B]'}`} />
+                                                </button>
 
-                                            <div className="w-20 text-center">
-                                                <span className={`text-[10px] font-mono tracking-widest font-bold uppercase ${isActive ? 'text-[#10B981]' : 'text-[#64748B]'}`}>
-                                                    {isActive ? 'ACTIVE' : 'OFFLINE'}
-                                                </span>
+                                                <div className="w-16 text-center">
+                                                    <span className={`text-[10px] font-mono tracking-widest font-bold uppercase ${isActive ? 'text-[#10B981]' : 'text-[#64748B]'}`}>
+                                                        {isActive ? 'ACTIVE' : 'OFFLINE'}
+                                                    </span>
+                                                </div>
                                             </div>
+
+                                            {/* Preview Toggle Button */}
+                                            {cam && (
+                                                <button
+                                                    onClick={() => togglePreview(i)}
+                                                    className={`p-1.5 rounded-md border transition-colors flex items-center justify-center ${previewVisible[i] ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'bg-[#1E2548]/50 border-[#1E2548] text-[#94A3B8] hover:text-white hover:bg-[#1E2548]'}`}
+                                                    title={previewVisible[i] ? "Hide Preview" : "Show Preview"}
+                                                >
+                                                    {previewVisible[i] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
+                                            )}
                                         </div>
+                                        
+                                        {/* Collapsible Preview Box */}
+                                        {cam && previewVisible[i] && (
+                                            <div className="w-full mt-4 bg-black rounded-lg border border-[#1E2548] overflow-hidden aspect-video relative flex items-center justify-center">
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm">
+                                                    <AlertCircle className="w-6 h-6 mb-2 opacity-50" />
+                                                    <span className="text-[10px] opacity-50">NO SIGNAL / CONNECTING...</span>
+                                                </div>
+                                                <img
+                                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${cam.id}/live?token=${localStorage.getItem('access_token')}`}
+                                                    alt={`Preview ${cam.name}`}
+                                                    className="w-full h-full object-contain relative z-10"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                    }}
+                                                    onLoad={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'block';
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })
