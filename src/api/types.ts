@@ -142,6 +142,10 @@ export interface YoloStreamMessage {
     last_event?: YoloEvent;
     logic?: LogicOutput;
     analysis?: {
-        text: string;
+        risk_score: number;
+        risk_level: string;
+        label: string;
+        explanation: string;
+        text?: string; // fallback in case the backend still sends raw text
     };
 }

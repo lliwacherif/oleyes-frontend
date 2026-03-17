@@ -141,4 +141,8 @@ export const api = {
         const response = await apiClient.put<CameraData>(`/api/v1/cameras/${cameraId}`, payload);
         return response.data;
     },
+
+    deleteCamera: async (cameraId: string): Promise<void> => {
+        await apiClient.delete(`/api/v1/cameras/${cameraId}`);
+    },
 };

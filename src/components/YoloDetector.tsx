@@ -10,7 +10,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [logicData, setLogicData] = useState<LogicOutput | null>(null);
-    const [llmAnalysis, setLlmAnalysis] = useState<string | null>(null);
+    const [llmAnalysis, setLlmAnalysis] = useState<any | null>(null);
     const [currentBatch, setCurrentBatch] = useState<YoloFrameEvent[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -124,20 +124,20 @@ TASK:
         }
     };
 
-    const handleStop = async () => {
-        if (jobId) {
-            try {
-                await api.stopJob(jobId);
-            } catch (err) {
-                console.error("Failed to stop job backend:", err);
-            }
-        }
+    const handleStop = () => {
+        setIsLoading(false);
+        setStatus('stopped');
+
         if (sourceRef.current) {
             sourceRef.current.close();
             sourceRef.current = null;
         }
-        setIsLoading(false);
-        setStatus('stopped');
+
+        if (jobId) {
+            api.stopJob(jobId).catch(err => {
+                console.error("Failed to stop job backend:", err);
+            });
+        }
     };
 
     // Helper for AI text removed as per new implementation
@@ -174,8 +174,14 @@ TASK:
                 }
 
                 // 3. LLM Analysis (every 8 frames)
-                if (data.analysis?.text) {
-                    setLlmAnalysis(data.analysis.text);
+                if (data.analysis) {
+                    if (data.analysis.text) {
+                        setLlmAnalysis(data.analysis.text); // legacy raw string parser
+                    } else if (data.analysis.risk_level) {
+                        setLlmAnalysis(data.analysis); // new backend structured json
+                    } else {
+                        setLlmAnalysis(data.analysis);
+                    }
                 }
 
                 // 4. Stop Condition
@@ -333,15 +339,20 @@ TASK:
                                         </h4>
 
                                         {(() => {
-                                            let analysisData = { risk_score: 0, risk_level: 'UNKNOWN', label: 'Analyzing...' };
-                                            try {
-                                                const jsonMatch = llmAnalysis.match(/\{[\s\S]*\}/);
-                                                if (jsonMatch) {
-                                                    const parsed = JSON.parse(jsonMatch[0]);
-                                                    analysisData = { ...analysisData, ...parsed };
+                                            let analysisData = { risk_score: 0, risk_level: 'UNKNOWN', label: 'Analyzing...', explanation: '' };
+                                            
+                                            if (typeof llmAnalysis === 'string') {
+                                                try {
+                                                    const jsonMatch = llmAnalysis.match(/\{[\s\S]*\}/);
+                                                    if (jsonMatch) {
+                                                        const parsed = JSON.parse(jsonMatch[0]);
+                                                        analysisData = { ...analysisData, ...parsed };
+                                                    }
+                                                } catch (e) {
+                                                    console.warn("Could not parse LLM JSON", e);
                                                 }
-                                            } catch (e) {
-                                                console.warn("Could not parse LLM JSON", e);
+                                            } else if (llmAnalysis && typeof llmAnalysis === 'object') {
+                                                analysisData = { ...analysisData, ...llmAnalysis };
                                             }
 
                                             // Color Mapping based on RISK LEVEL or LABEL
@@ -432,15 +443,19 @@ TASK:
                                         </div>
 
                                         <div className="font-mono text-[10px] leading-relaxed text-[#94A3B8] whitespace-pre-wrap pl-2 uppercase">
-                                            &gt; <ReactMarkdown
-                                                components={{
-                                                    strong: ({ node, ...props }) => <span className="text-cyan-300 font-bold" {...props} />,
-                                                    em: ({ node, ...props }) => <span className="text-emerald-400 font-bold" {...props} />,
-                                                    p: ({ node, ...props }) => <span {...props} />,
-                                                }}
-                                            >
-                                                {llmAnalysis}
-                                            </ReactMarkdown>
+                                            &gt; {typeof llmAnalysis === 'string' ? (
+                                                <ReactMarkdown
+                                                    components={{
+                                                        strong: ({ node, ...props }) => <span className="text-cyan-300 font-bold" {...props} />,
+                                                        em: ({ node, ...props }) => <span className="text-emerald-400 font-bold" {...props} />,
+                                                        p: ({ node, ...props }) => <span {...props} />,
+                                                    }}
+                                                >
+                                                    {llmAnalysis}
+                                                </ReactMarkdown>
+                                            ) : (
+                                                <span className="text-cyan-100">{llmAnalysis.explanation || llmAnalysis.label || "Monitoring situation..."}</span>
+                                            )}
                                         </div>
                                     </div>
                                 )}

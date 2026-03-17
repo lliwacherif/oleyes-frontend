@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { api } from '../api/client';
 import type { CameraData } from '../api/types';
-import { Video, Save, Loader2, AlertCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Video, Save, Loader2, AlertCircle, RefreshCw, Eye, EyeOff, Trash2 } from 'lucide-react';
 
 export function Cameras() {
     const [cameras, setCameras] = useState<CameraData[]>([]);
@@ -142,6 +142,45 @@ export function Cameras() {
         }
     };
 
+    const handleDelete = async (index: number) => {
+        const existingCam = cameras[index];
+        if (!existingCam) return; // Cannot delete something not saved
+        
+        const confirmDelete = window.confirm(`Are you sure you want to delete ${existingCam.name}?`);
+        if (!confirmDelete) return;
+
+        try {
+            setSaving(`Deleting Camera ${index + 1}`);
+            await api.deleteCamera(existingCam.id);
+            setCameras(prev => prev.filter((_, i) => i !== index));
+            
+            // Re-sync states
+            setInputUrls(prev => {
+                const copy = { ...prev };
+                delete copy[index];
+                return copy;
+            });
+            setInputActive(prev => {
+                const copy = { ...prev };
+                delete copy[index];
+                return copy;
+            });
+            setPreviewVisible(prev => {
+                const copy = { ...prev };
+                delete copy[index];
+                return copy;
+            });
+
+        } catch (err: any) {
+            console.error("Failed to delete camera", err);
+            alert(`Failed to delete camera. Please check if the backend is updated.`);
+        } finally {
+            setSaving(null);
+            // Refetch to ensure index boundaries stay correct
+            fetchData();
+        }
+    };
+
     return (
         <Layout>
             <div className="w-full max-w-4xl mx-auto py-8">
@@ -238,6 +277,18 @@ export function Cameras() {
                                                     title={previewVisible[i] ? "Hide Preview" : "Show Preview"}
                                                 >
                                                     {previewVisible[i] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
+                                            )}
+
+                                            {/* Delete Button */}
+                                            {cam && (
+                                                <button
+                                                    onClick={() => handleDelete(i)}
+                                                    disabled={isSaving}
+                                                    className="p-1.5 rounded-md border border-red-900/50 bg-red-900/10 text-red-500/70 hover:text-red-400 hover:bg-red-900/30 transition-colors flex items-center justify-center disabled:opacity-50"
+                                                    title="Delete Camera"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
                                             )}
                                         </div>
