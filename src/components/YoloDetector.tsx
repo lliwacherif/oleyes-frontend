@@ -177,11 +177,10 @@ TASK:
                 if (data.analysis) {
                     if (data.analysis.text) {
                         setLlmAnalysis(data.analysis.text); // legacy raw string parser
-                    } else if (data.analysis.risk_level) {
+                    } else if (data.analysis.label && data.analysis.label !== 'Analyzing...' || data.analysis.explanation) {
                         setLlmAnalysis(data.analysis); // new backend structured json
-                    } else {
-                        setLlmAnalysis(data.analysis);
                     }
+                    // Ignored otherwise, to prevent dummy { risk_level: "LOW" } SSE objects from wiping the api.chat polling state
                 }
 
                 // 4. Stop Condition
