@@ -295,15 +295,18 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                             let analysisData = { risk_score: 0, risk_level: 'UNKNOWN', label: 'Analyzing...', explanation: '' };
                                             
                                             if (typeof llmAnalysis === 'string') {
-                                                try {
-                                                    const jsonMatch = llmAnalysis.match(/\{[\s\S]*\}/);
-                                                    if (jsonMatch) {
-                                                        const parsed = JSON.parse(jsonMatch[0]);
-                                                        analysisData = { ...analysisData, ...parsed };
-                                                    }
-                                                } catch (e) {
-                                                    console.warn("Could not parse LLM JSON", e);
-                                                }
+                                                // Handle partial JSON streams token-by-token
+                                                const scoreMatch = llmAnalysis.match(/"risk_score"\s*:\s*(\d+)/);
+                                                if (scoreMatch) analysisData.risk_score = parseInt(scoreMatch[1]);
+
+                                                const levelMatch = llmAnalysis.match(/"risk_level"\s*:\s*"([^"]+)"/);
+                                                if (levelMatch) analysisData.risk_level = levelMatch[1].toUpperCase();
+
+                                                const labelMatch = llmAnalysis.match(/"label"\s*:\s*"([^"]+)"/);
+                                                if (labelMatch) analysisData.label = labelMatch[1];
+                                                
+                                                const explMatch = llmAnalysis.match(/"explanation"\s*:\s*"([^"]+)"/);
+                                                if (explMatch) analysisData.explanation = explMatch[1];
                                             } else if (llmAnalysis && typeof llmAnalysis === 'object') {
                                                 analysisData = { ...analysisData, ...llmAnalysis };
                                             }
