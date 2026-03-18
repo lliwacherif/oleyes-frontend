@@ -34,48 +34,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         loadCameras();
     }, []);
 
-    // AI Polling Logic
-    useEffect(() => {
-        let intervalId: ReturnType<typeof setInterval> | null = null;
 
-        if (status === 'running' && logicData) {
-            // Poll every 5 seconds
-            intervalId = setInterval(async () => {
-                try {
-                    const prompt = `
-SURVEILLANCE DATA:
-${JSON.stringify({ ...logicData, objects: logicData.objects.slice(0, 5) })} 
-${sceneContext ? `SCENE CONTEXT: ${sceneContext}` : ''}
-
-TASK: 
-1. Key behavior analysis.
-2. Assess risk level (LOW/MEDIUM/HIGH) and numeric score (0-100).
-3. Determine the label (e.g., Safe, Theft Suspected, Violence, Suspicious).
-4. OUTPUT MUST BE PURE JSON format:
-{"risk_score": <number>, "risk_level": "<HIGH/MEDIUM/LOW>", "label": "<string>", "explanation": "<string>"}
-`;
-
-                    const response = await api.chat({
-                        messages: [
-                            { role: 'system', content: 'You are a tactical security AI. Output ONLY JSON.' },
-                            { role: 'user', content: prompt }
-                        ],
-                        scene_context: sceneContext
-                    });
-
-                    if (response && response.content) {
-                        setLlmAnalysis(response.content);
-                    }
-                } catch (err) {
-                    console.error("AI Polling Error:", err);
-                }
-            }, 5000);
-        }
-
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [status, logicData, sceneContext]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -173,14 +132,9 @@ TASK:
                     setLogicData(data.logic);
                 }
 
-                // 3. LLM Analysis (every 8 frames)
+                // 3. LLM Analysis (every 8 frames or when backend sends it)
                 if (data.analysis) {
-                    if (data.analysis.text) {
-                        setLlmAnalysis(data.analysis.text); // legacy raw string parser
-                    } else if (data.analysis.label && data.analysis.label !== 'Analyzing...' || data.analysis.explanation) {
-                        setLlmAnalysis(data.analysis); // new backend structured json
-                    }
-                    // Ignored otherwise, to prevent dummy { risk_level: "LOW" } SSE objects from wiping the api.chat polling state
+                    setLlmAnalysis(data.analysis);
                 }
 
                 // 4. Stop Condition
