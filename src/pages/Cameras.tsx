@@ -142,9 +142,10 @@ export function Cameras() {
         let urlToSave = '';
         let keyToSave: string | null = null;
         if (type === 'RTMP') {
-            const key = rtmpKeys[index] || '';
-            if (!key.trim()) return;
-            keyToSave = key.trim();
+            const rawKey = rtmpKeys[index] || '';
+            if (!rawKey.trim()) return;
+            const parts = rawKey.split('/');
+            keyToSave = parts[parts.length - 1].trim();
         } else {
             const ip = (rtspIps[index] || '').trim();
             if (!ip) return;

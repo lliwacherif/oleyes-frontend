@@ -80,7 +80,8 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         setLlmAnalysis(null);
 
         try {
-            const cleanKey = streamKey.trim();
+            const parts = streamKey.split('/');
+            const cleanKey = parts[parts.length - 1].trim();
             const resp = await api.detectRtmp(cleanKey, sceneContext);
 
             setJobId(resp.job_id);
