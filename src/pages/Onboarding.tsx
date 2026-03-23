@@ -27,9 +27,9 @@ export const Onboarding = () => {
     const [businessSize, setBusinessSize] = useState('');
     const [priorities, setPriorities] = useState({
         theft: false,
-        suspicious: false,
-        loitering: false,
-        employee: false,
+        fire: false,
+        fall: false,
+        violence: false,
         customer: false,
     });
     const [cameraType, setCameraType] = useState('');
@@ -61,9 +61,9 @@ export const Onboarding = () => {
                     if (data.security_priorities) {
                         setPriorities({
                             theft: data.security_priorities.theft_detection ?? false,
-                            suspicious: data.security_priorities.suspicious_behavior_detection ?? false,
-                            loitering: data.security_priorities.loitering_detection ?? false,
-                            employee: data.security_priorities.employee_monitoring ?? false,
+                            fire: data.security_priorities.fire_detection ?? false,
+                            fall: data.security_priorities.person_fall_detection ?? false,
+                            violence: data.security_priorities.violence_detection ?? false,
                             customer: data.security_priorities.customer_behavior_analytics ?? false,
                         });
                     }
@@ -96,9 +96,9 @@ export const Onboarding = () => {
                 camera_type: cameraType,
                 security_priorities: {
                     theft_detection: priorities.theft ?? false,
-                    suspicious_behavior_detection: priorities.suspicious ?? false,
-                    loitering_detection: priorities.loitering ?? false,
-                    employee_monitoring: priorities.employee ?? false,
+                    fire_detection: priorities.fire ?? false,
+                    person_fall_detection: priorities.fall ?? false,
+                    violence_detection: priorities.violence ?? false,
                     customer_behavior_analytics: priorities.customer ?? false,
                 }
             };
@@ -245,9 +245,9 @@ export const Onboarding = () => {
                     {step === 3 && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300 max-w-sm ml-auto">
                             {renderToggle('Theft Detection', 'theft')}
-                            {renderToggle('Suspicious Behavior Detection', 'suspicious')}
-                            {renderToggle('Loitering Detection', 'loitering')}
-                            {renderToggle('Employee Monitoring', 'employee')}
+                            {renderToggle('Fire Detection', 'fire')}
+                            {renderToggle('Person Fall Detection', 'fall')}
+                            {renderToggle('Violence Detection', 'violence')}
                             {renderToggle('Customer Behavior Analytics', 'customer')}
                         </div>
                     )}

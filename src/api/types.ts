@@ -15,9 +15,9 @@ export interface ContextData {
     camera_type?: string;
     security_priorities?: {
         theft_detection?: boolean;
-        suspicious_behavior_detection?: boolean;
-        loitering_detection?: boolean;
-        employee_monitoring?: boolean;
+        fire_detection?: boolean;
+        person_fall_detection?: boolean;
+        violence_detection?: boolean;
         customer_behavior_analytics?: boolean;
     };
     context_text?: string;

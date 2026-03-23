@@ -28,9 +28,9 @@ export function Settings() {
         camera_type: '',
         security_priorities: {
             theft_detection: false,
-            suspicious_behavior_detection: false,
-            loitering_detection: false,
-            employee_monitoring: false,
+            fire_detection: false,
+            person_fall_detection: false,
+            violence_detection: false,
             customer_behavior_analytics: false,
         }
     });
@@ -283,9 +283,9 @@ export function Settings() {
                                     <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Security Priorities</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
                                         {renderToggle('Theft Detection', 'theft_detection')}
-                                        {renderToggle('Suspicious Behavior', 'suspicious_behavior_detection')}
-                                        {renderToggle('Loitering Detection', 'loitering_detection')}
-                                        {renderToggle('Employee Monitoring', 'employee_monitoring')}
+                                        {renderToggle('Fire Detection', 'fire_detection')}
+                                        {renderToggle('Person Fall Detection', 'person_fall_detection')}
+                                        {renderToggle('Violence Detection', 'violence_detection')}
                                         {renderToggle('Customer Analytics', 'customer_behavior_analytics')}
                                     </div>
                                 </div>
