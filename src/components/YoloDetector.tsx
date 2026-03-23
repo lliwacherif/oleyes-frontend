@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData } from '../api/types';
 import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X } from 'lucide-react';
