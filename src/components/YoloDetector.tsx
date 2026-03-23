@@ -54,10 +54,8 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
             setStatus(resp.status);
         } catch (err: any) {
             console.error("Detection Error:", err);
-            // Extract detailed validation error from FastAPI
             if (err.response?.data?.detail) {
                 const detail = err.response.data.detail;
-                // If detail is an array (Pydantic validation error), formatting it
                 if (Array.isArray(detail)) {
                     setError(`Validation Error: ${detail.map((e: any) => e.msg).join(', ')}`);
                 } else {
@@ -69,6 +67,40 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
             setIsLoading(false);
         }
     };
+
+    const startDetectionRtmp = async (streamKey: string) => {
+        if (!streamKey) return;
+
+        setIsLoading(true);
+        setError(null);
+        setJobId(null);
+        setStatus('queued');
+        setCurrentBatch([]);
+        setLogicData(null);
+        setLlmAnalysis(null);
+
+        try {
+            const cleanKey = streamKey.trim();
+            const resp = await api.detectRtmp(cleanKey, sceneContext);
+
+            setJobId(resp.job_id);
+            setStatus(resp.status);
+        } catch (err: any) {
+            console.error("Detection Error (RTMP):", err);
+            if (err.response?.data?.detail) {
+                const detail = err.response.data.detail;
+                if (Array.isArray(detail)) {
+                    setError(`Validation Error: ${detail.map((e: any) => e.msg).join(', ')}`);
+                } else {
+                    setError(`Error: ${detail}`);
+                }
+            } else {
+                setError('Failed to start detection job.');
+            }
+            setIsLoading(false);
+        }
+    };
+
 
     const handleStop = () => {
         setIsLoading(false);
@@ -180,8 +212,10 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     <Video className="w-4 h-4 text-[#10B981]" />
                                     <div>
                                         <div className="text-white font-bold">{cam.name}</div>
-                                        <div className="text-[#64748B] truncate max-w-[200px] sm:max-w-[300px]" title={cam.rtsp_url}>
-                                            {cam.rtsp_url}
+                                        <div className="text-[#64748B] truncate max-w-[200px] sm:max-w-[300px]">
+                                            {cam.stream_protocol === 'RTMP' 
+                                                ? `RTMP: ${cam.stream_key}` 
+                                                : cam.rtsp_url}
                                         </div>
                                     </div>
                                 </div>
@@ -196,7 +230,13 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => startDetection(cam.rtsp_url)}
+                                        onClick={() => {
+                                            if (cam.stream_protocol === 'RTMP' && cam.stream_key) {
+                                                startDetectionRtmp(cam.stream_key);
+                                            } else {
+                                                startDetection(cam.rtsp_url);
+                                            }
+                                        }}
                                         disabled={isLoading}
                                         className="px-4 py-2 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 rounded hover:bg-[#10B981]/20 disabled:opacity-50 transition-colors flex items-center gap-2"
                                     >

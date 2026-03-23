@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ChatRequest, ChatResponse, YoloDetectRequest, YoloDetectRtspRequest, YoloJobResponse, ContextData, ContextResponse, CameraData, CreateCameraData, UpdateCameraData } from './types';
+import type { ChatRequest, ChatResponse, YoloDetectRequest, YoloDetectRtspRequest, YoloJobResponse, ContextData, ContextResponse, CameraData, CreateCameraData, UpdateCameraData, YoloDetectRtmpRequest } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -98,6 +98,13 @@ export const api = {
             scene_context: sceneContext
         };
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtsp', payload);
+        return response.data;
+    },
+
+    detectRtmp: async (streamKey: string, sceneContext?: string): Promise<YoloJobResponse> => {
+        const payload: YoloDetectRtmpRequest = { stream_key: streamKey };
+        if (sceneContext) payload.scene_context = sceneContext;
+        const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtmp', payload);
         return response.data;
     },
 

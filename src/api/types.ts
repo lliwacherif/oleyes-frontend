@@ -33,6 +33,9 @@ export interface CameraData {
     user_id: string;
     name: string;
     rtsp_url: string;
+    stream_protocol: 'RTSP' | 'RTMP';
+    stream_key: string | null;
+    effective_url?: string;
     is_active: boolean;
     created_at?: string;
     updated_at?: string;
@@ -41,12 +44,16 @@ export interface CameraData {
 export interface CreateCameraData {
     name: string;
     rtsp_url: string;
+    stream_protocol: 'RTSP' | 'RTMP';
+    stream_key: string | null;
     is_active: boolean;
 }
 
 export interface UpdateCameraData {
     name?: string;
     rtsp_url?: string;
+    stream_protocol?: 'RTSP' | 'RTMP';
+    stream_key?: string | null;
     is_active?: boolean;
 }
 
@@ -72,6 +79,12 @@ export interface YoloDetectRequest {
 
 export interface YoloDetectRtspRequest {
     rtsp_url: string;
+    callback_url?: string;
+    scene_context?: string;
+}
+
+export interface YoloDetectRtmpRequest {
+    stream_key: string;
     callback_url?: string;
     scene_context?: string;
 }

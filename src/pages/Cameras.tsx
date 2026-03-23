@@ -80,10 +80,9 @@ export function Cameras() {
             const url = cam.rtsp_url || '';
             newActive[i] = cam.is_active;
 
-            if (url.startsWith('rtmp://')) {
+            if (cam.stream_protocol === 'RTMP') {
                 newTypes[i] = 'RTMP';
-                const match = url.match(/rtmp:\/\/[^/]+\/[^/]+\/(.+)/);
-                newKeys[i] = match ? match[1] : '';
+                newKeys[i] = cam.stream_key || '';
             } else {
                 newTypes[i] = 'RTSP';
                 try {
@@ -141,11 +140,11 @@ export function Cameras() {
     const handleSave = async (index: number, forcedActiveState?: boolean) => {
         const type = connectionTypes[index] || 'RTSP';
         let urlToSave = '';
+        let keyToSave: string | null = null;
         if (type === 'RTMP') {
             const key = rtmpKeys[index] || '';
             if (!key.trim()) return;
-            const serverIp = import.meta.env.VITE_RTMP_SERVER_IP || window.location.hostname;
-            urlToSave = `rtmp://${serverIp}:1935/live/${key.trim()}`;
+            keyToSave = key.trim();
         } else {
             const ip = (rtspIps[index] || '').trim();
             if (!ip) return;
@@ -162,7 +161,8 @@ export function Cameras() {
         const existingCam = cameras[index];
         const camName = `Camera ${index + 1}`;
 
-        if (!urlToSave.trim() && !existingCam) return; // Don't create empty cameras
+        if (type === 'RTSP' && !urlToSave.trim() && !existingCam) return;
+        if (type === 'RTMP' && !keyToSave && !existingCam) return;
 
         try {
             setSaving(camName);
@@ -173,6 +173,8 @@ export function Cameras() {
                 updatedCam = await api.updateCamera(existingCam.id, {
                     name: camName,
                     rtsp_url: urlToSave,
+                    stream_protocol: type,
+                    stream_key: keyToSave,
                     is_active: activeToSave
                 });
 
@@ -186,6 +188,8 @@ export function Cameras() {
                 updatedCam = await api.createCamera({
                     name: camName,
                     rtsp_url: urlToSave,
+                    stream_protocol: type,
+                    stream_key: keyToSave,
                     is_active: activeToSave
                 });
 
