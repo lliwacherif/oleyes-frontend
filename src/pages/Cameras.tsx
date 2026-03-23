@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { api } from '../api/client';
 import type { CameraData } from '../api/types';
-import { Video, Save, Loader2, AlertCircle, RefreshCw, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Video, Save, Loader2, AlertCircle, RefreshCw, Eye, EyeOff, Trash2, Copy, Check } from 'lucide-react';
 
 export function Cameras() {
     const [cameras, setCameras] = useState<CameraData[]>([]);
@@ -41,7 +41,6 @@ export function Cameras() {
                 setCameras(fetchedCameras || []);
             } catch (err: any) {
                 console.log("Could not fetch cameras or endpoint not ready:", err.message);
-                // We don't fail the whole page if backend isn't ready
                 setCameras([]);
             }
 
@@ -52,28 +51,75 @@ export function Cameras() {
         }
     };
 
-    // Prepare the list of camera rows based on max of (fetched cameras, estimated count)
-    const displayCount = Math.max(cameras.length, estimatedCount, 1); // At least 1 slot
+    const displayCount = Math.max(cameras.length, estimatedCount, 1);
 
-    // Create a working state arrays for the form inputs
-    const [inputUrls, setInputUrls] = useState<{ [index: number]: string }>({});
+    // New decomposed state arrays
+    const [connectionTypes, setConnectionTypes] = useState<{ [index: number]: 'RTSP' | 'RTMP' }>({});
+    const [rtspIps, setRtspIps] = useState<{ [index: number]: string }>({});
+    const [rtspPorts, setRtspPorts] = useState<{ [index: number]: string }>({});
+    const [rtspUsers, setRtspUsers] = useState<{ [index: number]: string }>({});
+    const [rtspPasses, setRtspPasses] = useState<{ [index: number]: string }>({});
+    const [rtspPaths, setRtspPaths] = useState<{ [index: number]: string }>({});
+    const [rtmpKeys, setRtmpKeys] = useState<{ [index: number]: string }>({});
+    
     const [inputActive, setInputActive] = useState<{ [index: number]: boolean }>({});
     const [previewVisible, setPreviewVisible] = useState<{ [index: number]: boolean }>({});
+    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-    // Sync input states when fetched cameras change
     useEffect(() => {
-        const newUrls: { [index: number]: string } = {};
+        const newTypes: { [index: number]: 'RTSP' | 'RTMP' } = {};
+        const newIps: { [index: number]: string } = {};
+        const newPorts: { [index: number]: string } = {};
+        const newUsers: { [index: number]: string } = {};
+        const newPasses: { [index: number]: string } = {};
+        const newPaths: { [index: number]: string } = {};
+        const newKeys: { [index: number]: string } = {};
         const newActive: { [index: number]: boolean } = {};
+
         cameras.forEach((cam, i) => {
-            newUrls[i] = cam.rtsp_url;
+            const url = cam.rtsp_url || '';
             newActive[i] = cam.is_active;
+
+            if (url.startsWith('rtmp://')) {
+                newTypes[i] = 'RTMP';
+                const match = url.match(/rtmp:\/\/[^/]+\/[^/]+\/(.+)/);
+                newKeys[i] = match ? match[1] : '';
+            } else {
+                newTypes[i] = 'RTSP';
+                try {
+                    const parsed = new URL(url);
+                    newIps[i] = parsed.hostname;
+                    newPorts[i] = parsed.port || '554';
+                    newUsers[i] = decodeURIComponent(parsed.username);
+                    newPasses[i] = decodeURIComponent(parsed.password);
+                    newPaths[i] = parsed.pathname + parsed.search;
+                } catch (e) {
+                    const match = url.match(/rtsp:\/\/(?:([^:]+):([^@]+)@)?([^:/]+)(?::(\d+))?(\/.*)?/);
+                    if (match) {
+                        newUsers[i] = decodeURIComponent(match[1] || '');
+                        newPasses[i] = decodeURIComponent(match[2] || '');
+                        newIps[i] = match[3] || '';
+                        newPorts[i] = match[4] || '554';
+                        newPaths[i] = match[5] || '';
+                    } else {
+                        newIps[i] = url;
+                    }
+                }
+            }
         });
-        setInputUrls(newUrls);
+
+        setConnectionTypes(newTypes);
+        setRtspIps(newIps);
+        setRtspPorts(newPorts);
+        setRtspUsers(newUsers);
+        setRtspPasses(newPasses);
+        setRtspPaths(newPaths);
+        setRtmpKeys(newKeys);
         setInputActive(newActive);
     }, [cameras]);
 
-    const handleUrlChange = (index: number, value: string) => {
-        setInputUrls(prev => ({ ...prev, [index]: value }));
+    const handleFieldChange = (setter: React.Dispatch<React.SetStateAction<any>>, index: number, value: any) => {
+        setter((prev: any) => ({ ...prev, [index]: value }));
     };
 
     const togglePreview = (index: number) => {
@@ -93,7 +139,25 @@ export function Cameras() {
     };
 
     const handleSave = async (index: number, forcedActiveState?: boolean) => {
-        const urlToSave = inputUrls[index] || '';
+        const type = connectionTypes[index] || 'RTSP';
+        let urlToSave = '';
+        if (type === 'RTMP') {
+            const key = rtmpKeys[index] || '';
+            if (!key.trim()) return;
+            const serverIp = import.meta.env.VITE_RTMP_SERVER_IP || window.location.hostname;
+            urlToSave = `rtmp://${serverIp}:1935/live/${key.trim()}`;
+        } else {
+            const ip = (rtspIps[index] || '').trim();
+            if (!ip) return;
+            const port = (rtspPorts[index] || '554').trim();
+            const user = (rtspUsers[index] || '').trim();
+            const pass = (rtspPasses[index] || '').trim();
+            let path = (rtspPaths[index] || '').trim();
+            if (path && !path.startsWith('/')) path = '/' + path;
+            const credentials = user && pass ? `${encodeURIComponent(user)}:${encodeURIComponent(pass)}@` : '';
+            urlToSave = `rtsp://${credentials}${ip}:${port}${path}`;
+        }
+
         const activeToSave = forcedActiveState !== undefined ? forcedActiveState : !!inputActive[index];
         const existingCam = cameras[index];
         const camName = `Camera ${index + 1}`;
@@ -152,32 +216,12 @@ export function Cameras() {
         try {
             setSaving(`Deleting Camera ${index + 1}`);
             await api.deleteCamera(existingCam.id);
-            setCameras(prev => prev.filter((_, i) => i !== index));
-            
-            // Re-sync states
-            setInputUrls(prev => {
-                const copy = { ...prev };
-                delete copy[index];
-                return copy;
-            });
-            setInputActive(prev => {
-                const copy = { ...prev };
-                delete copy[index];
-                return copy;
-            });
-            setPreviewVisible(prev => {
-                const copy = { ...prev };
-                delete copy[index];
-                return copy;
-            });
-
+            fetchData();
         } catch (err: any) {
             console.error("Failed to delete camera", err);
             alert(`Failed to delete camera. Please check if the backend is updated.`);
         } finally {
             setSaving(null);
-            // Refetch to ensure index boundaries stay correct
-            fetchData();
         }
     };
 
@@ -233,30 +277,106 @@ export function Cameras() {
                                             </span>
                                         </div>
 
-                                        <div className="flex-1 w-full relative">
-                                            <input
-                                                type="text"
-                                                value={inputUrls[i] || ''}
-                                                onChange={(e) => handleUrlChange(i, e.target.value)}
-                                                placeholder="rtsp://admin:pass@192.168.1.100:554/stream1"
-                                                className="w-full bg-[#121738] border border-[#1E2548] focus:border-[#10B981]/50 rounded-lg pl-4 pr-12 py-3 font-mono text-xs text-[#E2E8F0] placeholder-[#64748B] focus:outline-none transition-all shadow-inner"
-                                            />
+                                        <div className="flex-1 w-full flex flex-col gap-3 relative">
+                                            {/* Protocol Toggle */}
+                                            <div className="flex bg-[#121738] rounded-lg p-1 w-max border border-[#1E2548]">
+                                                {(['RTSP', 'RTMP'] as const).map(type => (
+                                                    <button
+                                                        key={type}
+                                                        onClick={() => handleFieldChange(setConnectionTypes, i, type)}
+                                                        className={`px-4 py-1.5 text-xs font-mono font-bold tracking-widest rounded transition-all ${
+                                                            (connectionTypes[i] || 'RTSP') === type
+                                                                ? 'bg-[#10B981]/20 text-[#10B981] shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                                                                : 'text-[#64748B] hover:text-[#94A3B8]'
+                                                        }`}
+                                                    >
+                                                        {type}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {(connectionTypes[i] || 'RTSP') === 'RTSP' ? (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#121738]/50 p-3 rounded-lg border border-[#1E2548]">
+                                                    <input
+                                                        type="text" placeholder="IP Address (e.g. 192.168.1.100)"
+                                                        value={rtspIps[i] || ''} onChange={e => handleFieldChange(setRtspIps, i, e.target.value)}
+                                                        className="bg-[#0A0D2A] border border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                    />
+                                                    <input
+                                                        type="text" placeholder="Port (e.g. 554)"
+                                                        value={rtspPorts[i] || ''} onChange={e => handleFieldChange(setRtspPorts, i, e.target.value)}
+                                                        className="bg-[#0A0D2A] border border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                    />
+                                                    <input
+                                                        type="text" placeholder="Username (Optional)"
+                                                        value={rtspUsers[i] || ''} onChange={e => handleFieldChange(setRtspUsers, i, e.target.value)}
+                                                        className="bg-[#0A0D2A] border border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                    />
+                                                    <input
+                                                        type="password" placeholder="Password (Optional)"
+                                                        value={rtspPasses[i] || ''} onChange={e => handleFieldChange(setRtspPasses, i, e.target.value)}
+                                                        className="bg-[#0A0D2A] border border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                        autoComplete="new-password"
+                                                    />
+                                                    <input
+                                                        type="text" placeholder="Stream Path (e.g. /cam/realmonitor?channel=1&subtype=0)"
+                                                        value={rtspPaths[i] || ''} onChange={e => handleFieldChange(setRtspPaths, i, e.target.value)}
+                                                        className="bg-[#0A0D2A] border border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none sm:col-span-2 lg:col-span-4"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="flex bg-[#121738]/50 p-3 rounded-lg border border-[#1E2548]">
+                                                        <input
+                                                            type="text" placeholder="Stream Key (e.g. cam1)"
+                                                            value={rtmpKeys[i] || ''} onChange={e => handleFieldChange(setRtmpKeys, i, e.target.value)}
+                                                            className="flex-1 bg-[#0A0D2A] border border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-[10px] sm:text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Instruction Box */}
+                                                    <div className="bg-[#10B981]/5 border border-[#10B981]/20 rounded-lg p-3 relative group/copy">
+                                                        <p className="text-[#94A3B8] text-[11px] mb-2 font-mono">
+                                                            Enter this Custom URL into your camera's RTMP settings:
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <code className="flex-1 bg-black/40 text-[#10B981] p-2 rounded text-[10px] sm:text-xs font-mono break-all selection:bg-[#10B981]/30">
+                                                                rtmp://{import.meta.env.VITE_RTMP_SERVER_IP || 'localhost'}:1935/live/{(rtmpKeys[i] || 'cam1').trim()}
+                                                            </code>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(`rtmp://${import.meta.env.VITE_RTMP_SERVER_IP || window.location.hostname}:1935/live/${(rtmpKeys[i] || 'cam1').trim()}`);
+                                                                    setCopiedIndex(i);
+                                                                    setTimeout(() => setCopiedIndex(null), 2000);
+                                                                }}
+                                                                className="shrink-0 p-2 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20 rounded transition-colors"
+                                                                title="Copy URL"
+                                                            >
+                                                                {copiedIndex === i ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* Save Button */}
-                                            <button
-                                                onClick={() => handleSave(i)}
-                                                disabled={isSaving || (!inputUrls[i] && !cam)}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20 disabled:opacity-50 disabled:hover:bg-[#10B981]/10 transition-colors"
-                                                title="Save URL"
-                                            >
-                                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                            </button>
+                                            <div className="flex justify-end mt-1">
+                                                <button
+                                                    onClick={() => handleSave(i)}
+                                                    disabled={isSaving || (!cam && ((connectionTypes[i] || 'RTSP') === 'RTMP' ? !(rtmpKeys[i] || '').trim() : !(rtspIps[i] || '').trim()))}
+                                                    className="px-4 py-2 rounded-md bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] hover:bg-[#10B981]/20 disabled:opacity-50 disabled:hover:bg-[#10B981]/10 transition-colors flex items-center justify-center gap-2 font-mono text-[10px] font-bold tracking-widest uppercase"
+                                                    title="Save Config"
+                                                >
+                                                    {isSaving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> SAVING...</> : <><Save className="w-3.5 h-3.5" /> SAVE CONFIG</>}
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-3">
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleActiveToggle(i)}
-                                                    disabled={!cam && !inputUrls[i]}
+                                                    disabled={!cam && ((connectionTypes[i] || 'RTSP') === 'RTMP' ? !(rtmpKeys[i] || '').trim() : !(rtspIps[i] || '').trim())}
                                                     className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none border border-[#1E2548] shadow-inner ${isActive ? 'bg-[#10B981]/20' : 'bg-[#121738] disabled:opacity-50'}`}
                                                 >
                                                     <span className={`inline-block h-5 w-5 transform rounded-full transition-transform ${isActive ? 'translate-x-8 bg-[#10B981] shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'translate-x-1 bg-[#64748B]'}`} />
