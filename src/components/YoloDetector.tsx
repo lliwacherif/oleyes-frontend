@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
-    const [url, setUrl] = useState('');
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [logicData, setLogicData] = useState<LogicOutput | null>(null);
@@ -36,11 +35,6 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
 
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        startDetection(url);
-    };
-
     const startDetection = async (targetUrl: string) => {
         if (!targetUrl) return;
 
@@ -54,14 +48,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
         try {
             const cleanUrl = targetUrl.trim();
-            let resp;
-
-            if (cleanUrl.toLowerCase().startsWith('rtsp://')) {
-                resp = await api.detectRtsp(cleanUrl, sceneContext);
-            } else {
-                const validUrl = cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`;
-                resp = await api.detectYoutube(validUrl, sceneContext);
-            }
+            const resp = await api.detectRtsp(cleanUrl, sceneContext);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -223,47 +210,25 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 mb-6 relative z-10">
-                <div className="relative flex-1 group/input">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                        <span className="text-cyan-500/50 group-focus-within/input:text-cyan-400 font-mono text-xs transition-colors">&gt;_</span>
-                    </div>
-                    <input
-                        type="text"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="https://www.youtube.com/shorts/..."
-                        className="w-full bg-[#121738] border border-[#1E2548] rounded pl-10 pr-4 py-3 text-[#94A3B8] font-mono text-xs focus:outline-none focus:border-cyan-500/50 transition-all shadow-inner"
-                    />
-                </div>
-                {isLoading ? (
-                    <button
-                        type="button"
-                        onClick={handleStop}
-                        className="bg-red-900/20 border border-red-500/50 hover:bg-red-900/40 text-red-400 px-8 py-3 rounded font-mono text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-3 min-w-[140px]"
-                    >
-                        <StopCircle className="w-3.5 h-3.5" />
-                        ABORT
-                    </button>
-                ) : (
-                    <button
-                        type="submit"
-                        disabled={!url}
-                        className="bg-[#041A3B] border border-[#1E3A8A] hover:bg-[#1E3A8A]/50 disabled:border-[#1E2548] disabled:text-[#64748B] disabled:bg-transparent text-cyan-400 px-8 py-3 rounded font-mono text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-3 min-w-[140px]"
-                    >
-                        <Play className="w-3.5 h-3.5" />
-                        EXECUTE
-                    </button>
-                )}
-            </form>
-
             {/* Status Indicator */}
             {(status === 'running' || status === 'done' || status === 'stopped' || status === 'failed' || status === 'error') && (
-                <div className="flex items-center gap-3 mb-8 bg-[#1E2548]/30 border border-[#1E2548] rounded px-3 py-1.5 self-start relative z-10">
-                    <span className="text-[#64748B] font-mono text-[10px] uppercase tracking-widest pl-1">SYS_STATUS //</span>
-                    <span className={`text-[10px] font-mono font-bold tracking-widest uppercase px-2 py-0.5 rounded-sm ${status === 'running' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20'}`}>
-                        [ {status === 'running' ? 'PROCESSING' : status} ]
-                    </span>
+                <div className="flex items-center gap-3 mb-8 bg-[#1E2548]/30 border border-[#1E2548] rounded px-3 py-1.5 self-start relative z-10 w-full sm:w-auto">
+                    <div className="flex items-center gap-3">
+                        <span className="text-[#64748B] font-mono text-[10px] uppercase tracking-widest pl-1 hidden sm:inline">SYS_STATUS //</span>
+                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase px-2 py-0.5 rounded-sm ${status === 'running' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20'}`}>
+                            [ {status === 'running' ? 'PROCESSING' : status} ]
+                        </span>
+                    </div>
+                    {isLoading && (
+                        <button
+                            type="button"
+                            onClick={handleStop}
+                            className="bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-500/50 rounded px-4 py-1 ml-auto sm:ml-4 font-mono text-[10px] tracking-widest uppercase transition-all flex items-center gap-2"
+                        >
+                            <StopCircle className="w-3.5 h-3.5" />
+                            ABORT
+                        </button>
+                    )}
                 </div>
             )}
 
