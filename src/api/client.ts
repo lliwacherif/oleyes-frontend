@@ -92,18 +92,20 @@ export const api = {
         return response.data;
     },
 
-    detectRtsp: async (url: string, sceneContext?: string): Promise<YoloJobResponse> => {
+    detectRtsp: async (url: string, sceneContext?: string, cameraId?: string): Promise<YoloJobResponse> => {
         const payload: YoloDetectRtspRequest = {
             rtsp_url: url,
             scene_context: sceneContext
         };
+        if (cameraId) payload.camera_id = cameraId;
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtsp', payload);
         return response.data;
     },
 
-    detectRtmp: async (streamKey: string, sceneContext?: string): Promise<YoloJobResponse> => {
+    detectRtmp: async (streamKey: string, sceneContext?: string, cameraId?: string): Promise<YoloJobResponse> => {
         const payload: YoloDetectRtmpRequest = { stream_key: streamKey };
         if (sceneContext) payload.scene_context = sceneContext;
+        if (cameraId) payload.camera_id = cameraId;
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtmp', payload);
         return response.data;
     },
@@ -151,5 +153,25 @@ export const api = {
 
     deleteCamera: async (cameraId: string): Promise<void> => {
         await apiClient.delete(`/api/v1/cameras/${cameraId}`);
+    },
+
+    // Zones API
+    getZones: async (cameraId: string): Promise<any> => {
+        const response = await apiClient.get<any>(`/api/v1/zones/camera/${cameraId}`);
+        return response.data;
+    },
+
+    createZone: async (payload: any): Promise<any> => {
+        const response = await apiClient.post<any>('/api/v1/zones/', payload);
+        return response.data;
+    },
+
+    updateZone: async (zoneId: string, payload: any): Promise<any> => {
+        const response = await apiClient.put<any>(`/api/v1/zones/${zoneId}`, payload);
+        return response.data;
+    },
+
+    deleteZone: async (zoneId: string): Promise<void> => {
+        await apiClient.delete(`/api/v1/zones/${zoneId}`);
     },
 };

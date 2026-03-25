@@ -10,6 +10,7 @@ import { Signup } from './pages/Signup';
 import { Onboarding } from './pages/Onboarding';
 import { Settings } from './pages/Settings';
 import { Cameras } from './pages/Cameras';
+import { ZoneRules } from './pages/ZoneRules';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -109,6 +110,7 @@ function App() {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/cameras" element={<Cameras />} />
+              <Route path="/zone-rules" element={<ZoneRules />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

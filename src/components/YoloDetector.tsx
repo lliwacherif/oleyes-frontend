@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../api/client';
-import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData } from '../api/types';
+import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData, Zone, ZonePoint, ZoneAlert } from '../api/types';
 import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -52,7 +53,7 @@ const renderParsedSummary = (text: string) => {
     const renderCurrent = (currStr: string) => {
         const entities = currStr.split(/(?=[A-Z][a-zA-Z\s]*#\d+:)/).filter(l => l.trim().length > 0);
         if (entities.length <= 1) return <div className="text-emerald-400 mt-2 whitespace-pre-wrap leading-relaxed">{currStr.trim()}</div>;
-        
+
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                 {entities.map((l, i) => (
@@ -65,7 +66,7 @@ const renderParsedSummary = (text: string) => {
     };
 
     if (!eventsMatch && !timelineMatch && !currStateMatch) {
-         return <div className="whitespace-pre-wrap leading-relaxed pl-2 text-[#94A3B8]">{text}</div>;
+        return <div className="whitespace-pre-wrap leading-relaxed pl-2 text-[#94A3B8]">{text}</div>;
     }
 
     return (
@@ -112,6 +113,101 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [activeCameras, setActiveCameras] = useState<CameraData[]>([]);
     const [viewingCameraId, setViewingCameraId] = useState<string | null>(null);
 
+    // Zone Definitions Overlay State
+    const [zones, setZones] = useState<Zone[]>([]);
+    const [isDrawingZone, setIsDrawingZone] = useState(false);
+    const [currentZonePoints, setCurrentZonePoints] = useState<ZonePoint[]>([]);
+    const [isSavingZone, setIsSavingZone] = useState(false);
+    const [videoNatRes, setVideoNatRes] = useState({w: 1920, h: 1080});
+    const [zoneAlerts, setZoneAlerts] = useState<ZoneAlert[]>([]);
+    const [mousePos, setMousePos] = useState<ZonePoint | null>(null);
+    const streamImgRef = useRef<HTMLImageElement>(null);
+    const streamSvgRef = useRef<SVGSVGElement>(null);
+
+    useEffect(() => {
+        if (viewingCameraId) {
+            api.getZones(viewingCameraId).then(setZones).catch(console.error);
+        } else {
+            setZones([]);
+            setIsDrawingZone(false);
+            setCurrentZonePoints([]);
+        }
+    }, [viewingCameraId]);
+
+    const svgCoordsFromEvent = (e: React.MouseEvent<SVGSVGElement>): ZonePoint => {
+        const svg = e.currentTarget;
+        const rect = svg.getBoundingClientRect();
+        return {
+            x: Math.round(((e.clientX - rect.left) / rect.width) * videoNatRes.w),
+            y: Math.round(((e.clientY - rect.top) / rect.height) * videoNatRes.h),
+        };
+    };
+    const handleSvgClick = (e: React.MouseEvent<SVGSVGElement>) => {
+        if (!isDrawingZone) return;
+        const pt = svgCoordsFromEvent(e);
+        if (currentZonePoints.length >= 3) {
+            const first = currentZonePoints[0];
+            const dist = Math.hypot(pt.x - first.x, pt.y - first.y);
+            const snapRadius = Math.max(videoNatRes.w, videoNatRes.h) * 0.02;
+            if (dist < snapRadius) {
+                handleSaveZone();
+                return;
+            }
+        }
+        setCurrentZonePoints(prev => [...prev, pt]);
+    };
+    const handleSvgMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+        if (!isDrawingZone) return;
+        setMousePos(svgCoordsFromEvent(e));
+    };
+    const handleSvgRightClick = (e: React.MouseEvent<SVGSVGElement>) => {
+        if (!isDrawingZone || currentZonePoints.length === 0) return;
+        e.preventDefault();
+        setCurrentZonePoints(prev => prev.slice(0, -1));
+    };
+    const handleUndoPoint = () => {
+        setCurrentZonePoints(prev => prev.slice(0, -1));
+    };
+
+    const handleSaveZone = async () => {
+        if (currentZonePoints.length < 3) {
+            alert("A zone must have at least 3 points.");
+            return;
+        }
+        if (!viewingCameraId) return;
+
+        setIsSavingZone(true);
+        try {
+            const zName = prompt("Enter a name for this Zone (e.g. Restricted Area):") || "New Zone";
+            const zInstruction = prompt("Zone instruction (e.g. 'Alert if person enters'):") || "";
+            const newZone = await api.createZone({
+                camera_id: viewingCameraId,
+                name: zName,
+                points: currentZonePoints,
+                color: "#EF4444",
+                instruction: zInstruction,
+            });
+            setZones(prev => [...prev, newZone]);
+        } catch (err) {
+            console.error("Failed to save zone:", err);
+            alert("Failed to save zone");
+        } finally {
+            setIsSavingZone(false);
+            setIsDrawingZone(false);
+            setCurrentZonePoints([]);
+        }
+    };
+
+    const handleDeleteZone = async (zoneId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await api.deleteZone(zoneId);
+            setZones(prev => prev.filter(z => z.id !== zoneId));
+        } catch (err) {
+            console.error("Failed to delete zone", err);
+        }
+    };
+
     const sourceRef = useRef<EventSource | null>(null);
 
     // Fetch active cameras
@@ -131,7 +227,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
 
 
-    const startDetection = async (targetUrl: string) => {
+    const startDetection = async (targetUrl: string, cameraId?: string) => {
         if (!targetUrl) return;
 
         setIsLoading(true);
@@ -141,10 +237,11 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         setCurrentBatch([]);
         setLogicData(null);
         setLlmAnalysis(null);
+        setZoneAlerts([]);
 
         try {
             const cleanUrl = targetUrl.trim();
-            const resp = await api.detectRtsp(cleanUrl, sceneContext);
+            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -164,7 +261,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         }
     };
 
-    const startDetectionRtmp = async (streamKey: string) => {
+    const startDetectionRtmp = async (streamKey: string, cameraId?: string) => {
         if (!streamKey) return;
 
         setIsLoading(true);
@@ -174,11 +271,12 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         setCurrentBatch([]);
         setLogicData(null);
         setLlmAnalysis(null);
+        setZoneAlerts([]);
 
         try {
             const parts = streamKey.split('/');
             const cleanKey = parts[parts.length - 1].trim();
-            const resp = await api.detectRtmp(cleanKey, sceneContext);
+            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -248,6 +346,15 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                     setLogicData(data.logic);
                 }
 
+                // x. Zone Alerts
+                if (data.zone_alerts && data.zone_alerts.length > 0) {
+                    setZoneAlerts(prev => {
+                        const newAlerts = [...data.zone_alerts!, ...prev];
+                        // limit to top 15 alerts to avoid memory leak
+                        return newAlerts.slice(0, 15);
+                    });
+                }
+
                 // 3. LLM Analysis (every 8 frames or when backend sends it)
                 if (data.analysis) {
                     setLlmAnalysis(data.analysis);
@@ -310,8 +417,8 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     <div>
                                         <div className="text-white font-bold">{cam.name}</div>
                                         <div className="text-[#64748B] truncate max-w-[200px] sm:max-w-[300px]">
-                                            {cam.stream_protocol === 'RTMP' 
-                                                ? `RTMP: ${cam.stream_key}` 
+                                            {cam.stream_protocol === 'RTMP'
+                                                ? `RTMP: ${cam.stream_key}`
                                                 : cam.rtsp_url}
                                         </div>
                                     </div>
@@ -329,9 +436,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         type="button"
                                         onClick={() => {
                                             if (cam.stream_protocol === 'RTMP' && cam.stream_key) {
-                                                startDetectionRtmp(cam.stream_key);
+                                                startDetectionRtmp(cam.stream_key, cam.id);
                                             } else {
-                                                startDetection(cam.rtsp_url);
+                                                startDetection(cam.rtsp_url, cam.id);
                                             }
                                         }}
                                         disabled={isLoading}
@@ -395,7 +502,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                                         {(() => {
                                             let analysisData = { risk_score: 0, risk_level: 'UNKNOWN', label: 'Analyzing...', explanation: '' };
-                                            
+
                                             if (typeof llmAnalysis === 'string') {
                                                 // Handle partial JSON streams token-by-token
                                                 const scoreMatch = llmAnalysis.match(/"risk_score"\s*:\s*(\d+)/);
@@ -406,7 +513,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                                                 const labelMatch = llmAnalysis.match(/"label"\s*:\s*"([^"]+)"/);
                                                 if (labelMatch) analysisData.label = labelMatch[1];
-                                                
+
                                                 const explMatch = llmAnalysis.match(/"explanation"\s*:\s*"([^"]+)"/);
                                                 if (explMatch) analysisData.explanation = explMatch[1];
                                             } else if (llmAnalysis && typeof llmAnalysis === 'object') {
@@ -467,6 +574,37 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                                 {/* Logic Engine Analysis Block */}
                                 <div className="mb-6">
+                                    {/* ZONE ALERTS UI */}
+                                    <AnimatePresence>
+                                        {zoneAlerts.length > 0 && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                                                className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-[8px] p-5 font-mono text-[10px] overflow-hidden relative shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                                            >
+                                                <div className="text-[#EF4444] font-bold mb-3 tracking-widest flex items-center gap-2">
+                                                    <AlertCircle className="w-4 h-4 animate-pulse" />
+                                                    [ ZONE_INTRUSION_ALERTS ]
+                                                </div>
+                                                <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {zoneAlerts.map((za, idx) => (
+                                                        <motion.div 
+                                                            key={`${za.timestamp}-${idx}`}
+                                                            initial={{ opacity: 0, x: -20 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            className="bg-[#EF4444]/20 border-l-2 border-[#EF4444] text-[#FCA5A5] pl-3 py-1.5 flex justify-between items-center group"
+                                                        >
+                                                            <span>{za.message}</span>
+                                                            <span className="text-[#EF4444]/50 text-[8px] group-hover:text-[#EF4444]/80 hidden sm:inline shrink-0 ml-4">
+                                                                FRAME_{za.frame}
+                                                            </span>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
                                     <h3 className="text-[14px] font-bold tracking-widest mb-4 flex items-center gap-2 text-white uppercase">
                                         <ShieldAlert className="w-4 h-4 text-white" />
                                         LOGIC ENGINE ANALYSIS
@@ -476,7 +614,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         <div className="text-neutral-500 mb-2">&gt;</div>
                                         <div className="text-[#94A3B8] leading-relaxed pt-2">
                                             {logicData.summary_text ? renderParsedSummary(logicData.summary_text) : null}
-                                            
+
                                             {logicData.scene_text && logicData.scene_text !== logicData.summary_text && (
                                                 <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-[#1E2548]/50" : ""}>
                                                     {(() => {
@@ -531,32 +669,32 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     </div>
                                 )}
 
-                                    {/* Critical Events Grid */}
-                                    {(logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
-                                        <div className="bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)] mb-4">
-                                            <h4 className="text-red-400 font-mono text-xs tracking-widest mb-3 flex items-center gap-2 uppercase">
-                                                <Activity className="w-4 h-4" /> [CRITICAL_EVENTS_DETECTED]
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {(logicData.armed_subjects || []).map((subj, i) => (
-                                                    <div key={`armed-${i}`} className="text-red-300 font-mono text-xs bg-red-950/40 p-2 border border-red-500/30">
-                                                        <span className="text-red-500 font-bold mr-2">!</span> ARMED: {subj}
-                                                    </div>
-                                                ))}
-                                                {(logicData.fighting_pairs || []).map((pair, i) => (
-                                                    <div key={`fight-${i}`} className="text-amber-300 font-mono text-xs bg-amber-950/40 p-2 border border-amber-500/30">
-                                                        <span className="text-amber-500 font-bold mr-2">!</span> FIGHT: {pair}
-                                                    </div>
-                                                ))}
-                                            </div>
+                                {/* Critical Events Grid */}
+                                {(logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
+                                    <div className="bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)] mb-4">
+                                        <h4 className="text-red-400 font-mono text-xs tracking-widest mb-3 flex items-center gap-2 uppercase">
+                                            <Activity className="w-4 h-4" /> [CRITICAL_EVENTS_DETECTED]
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {(logicData.armed_subjects || []).map((subj, i) => (
+                                                <div key={`armed-${i}`} className="text-red-300 font-mono text-xs bg-red-950/40 p-2 border border-red-500/30">
+                                                    <span className="text-red-500 font-bold mr-2">!</span> ARMED: {subj}
+                                                </div>
+                                            ))}
+                                            {(logicData.fighting_pairs || []).map((pair, i) => (
+                                                <div key={`fight-${i}`} className="text-amber-300 font-mono text-xs bg-amber-950/40 p-2 border border-amber-500/30">
+                                                    <span className="text-amber-500 font-bold mr-2">!</span> FIGHT: {pair}
+                                                </div>
+                                            ))}
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                            </div>
                         )}
 
                         {/* Bottom Side-by-Side Grid: Batch Log & Tracked Entities */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            
+
                             {/* Detailed Batch Processing Log (Left/Main, Col-Span 2) */}
                             <div className="lg:col-span-2 flex flex-col h-full">
                                 {currentBatch.length > 0 ? (
@@ -639,67 +777,292 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
             </AnimatePresence>
 
             {/* Live Camera Feed Modal / PiP */}
-            <AnimatePresence>
-                {viewingCameraId && (
-                    <motion.div
-                        layout
-                        initial={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
-                        animate={{ scale: 1, opacity: 1, y: 0, x: 0 }}
-                        exit={{ scale: 0.8, opacity: 0, y: 50, x: 50 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="fixed z-[70] bg-[#0A0D2A] border border-[#1E2548] overflow-hidden shadow-2xl flex flex-col bottom-6 right-6 w-[320px] sm:w-[480px] h-[220px] sm:h-[320px] rounded-lg border-cyan-500/30 hover:border-cyan-500 transition-colors cursor-move"
-                    >
+            {createPortal(
+                <AnimatePresence>
+                    {viewingCameraId && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-12 pointer-events-none">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-[2px] pointer-events-auto cursor-pointer"
+                            onClick={() => setViewingCameraId(null)}
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="relative w-full h-full max-w-[1500px] max-h-[900px] z-[101] bg-[#0A0D2A]/95 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col rounded-xl border border-[#1E2548] pointer-events-auto overflow-hidden border-cyan-500/50"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981] z-50 pointer-events-none" />
 
                         {/* Header */}
-                        <div className="shrink-0 flex items-center justify-between p-3 border-b border-[#1E2548] bg-[#060818]/90 z-40 relative shadow-md">
-                            <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2 text-[10px]">
-                                <Video className="w-3 h-3 text-cyan-400 animate-pulse" />
-                                [ CAM_{viewingCameraId.substring(0, 4)} ]
+                        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-[#1E2548] bg-[#060818]/90 z-40 relative shadow-md gap-3">
+                            <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2 text-[12px]">
+                                <Video className="w-4 h-4 text-cyan-400 animate-pulse" />
+                                [ CAM_{viewingCameraId.substring(0, 4)} ] - REGION OF INTEREST (ROI) ZONE CONFIG
                             </h3>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setViewingCameraId(null);
-                                }}
-                                className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-widest uppercase transition-all border border-red-500/20 hover:scale-105 active:scale-95"
-                                title="Close Feed"
-                            >
-                                <span className="hidden sm:inline">CLOSE</span>
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-
-                        {/* Video Container */}
-                        <div className="flex-1 min-h-0 bg-black relative flex items-center justify-center overflow-hidden w-full h-full">
-                            {/* Animated overlays */}
-                            <div className="absolute inset-x-0 top-0 h-[2px] bg-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.5)] z-10 animate-scan pointer-events-none" />
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
-
-                            <img
-                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
-                                alt="Live Camera Feed"
-                                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                                }}
-                            />
-                            <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm text-center px-4">
-                                <AlertCircle className="w-6 h-6 text-red-500/50 mb-2" />
-                                <span className="text-[10px]">CONNECTION FAILED</span>
+                            
+                            <div className="flex items-center gap-3 self-end sm:self-auto">
+                                {!isDrawingZone ? (
+                                    <button
+                                        onClick={() => { setIsDrawingZone(true); setCurrentZonePoints([]); }}
+                                        className="text-amber-400 px-4 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20"
+                                    >
+                                        DRAW NEW ZONE
+                                    </button>
+                                ) : (
+                                    <>
+                                        <span className="text-cyan-400 font-mono text-[10px] tracking-wider hidden sm:inline">
+                                            {currentZonePoints.length} PTS
+                                        </span>
+                                        <button
+                                            onClick={handleUndoPoint}
+                                            disabled={currentZonePoints.length === 0}
+                                            className="text-amber-400 px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 disabled:opacity-30"
+                                        >
+                                            UNDO
+                                        </button>
+                                        <button
+                                            onClick={() => { setIsDrawingZone(false); setCurrentZonePoints([]); setMousePos(null); }}
+                                            className="text-neutral-400 px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all bg-neutral-500/10 border border-neutral-500/30 hover:bg-neutral-500/20"
+                                        >
+                                            CANCEL
+                                        </button>
+                                        <button
+                                            onClick={handleSaveZone}
+                                            disabled={isSavingZone || currentZonePoints.length < 3}
+                                            className="text-emerald-400 px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-30"
+                                        >
+                                            SAVE ZONE ({currentZonePoints.length} PTS)
+                                        </button>
+                                    </>
+                                )}
+                                <div className="w-px h-6 bg-[#1E2548]" />
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setViewingCameraId(null);
+                                    }}
+                                    className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border border-red-500/20"
+                                    title="Close Feed"
+                                >
+                                    <span className="hidden sm:inline">CLOSE</span>
+                                    <X className="w-4 h-4" />
+                                </button>
                             </div>
-
-                            {/* Corner Accents for PIP mode */}
-                            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500/50 pointer-events-none z-20 m-1" />
-                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500/50 pointer-events-none z-20 m-1" />
-                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500/50 pointer-events-none z-20 m-1" />
-                            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500/50 pointer-events-none z-20 m-1" />
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
+                        {/* Video / SVG Container */}
+                        <div className="flex-1 bg-black/95 relative flex items-center justify-center overflow-hidden w-full h-full p-4 sm:p-8">
+                            {/* Inner flex box bounded by parent padding */}
+                            <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center bg-[#050505] border border-[#1E2548] shadow-2xl rounded overflow-hidden">
+                                <img
+                                    ref={streamImgRef}
+                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
+                                    alt="Live Camera Feed"
+                                    className="absolute inset-0 w-full h-full object-contain select-none shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                                    onLoad={(e) => {
+                                        const t = e.currentTarget;
+                                        setVideoNatRes(prev => 
+                                            (prev.w === (t.naturalWidth || 1920) && prev.h === (t.naturalHeight || 1080)) 
+                                                ? prev 
+                                                : {w: t.naturalWidth || 1920, h: t.naturalHeight || 1080}
+                                        );
+                                    }}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).nextElementSibling?.nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                />
+                                
+                                {/* SVG Interactive Overlay */}
+                                <svg
+                                    ref={streamSvgRef}
+                                    preserveAspectRatio="xMidYMid meet"
+                                    viewBox={`0 0 ${videoNatRes.w} ${videoNatRes.h}`}
+                                    className={`absolute inset-0 w-full h-full z-30 transition-colors ${
+                                        isDrawingZone ? 'cursor-crosshair' : 'pointer-events-none'
+                                    }`}
+                                    onClick={isDrawingZone ? handleSvgClick : undefined}
+                                    onMouseMove={isDrawingZone ? handleSvgMouseMove : undefined}
+                                    onMouseLeave={() => setMousePos(null)}
+                                    onContextMenu={handleSvgRightClick}
+                                >
+                                    {/* Existing Saved Zones */}
+                                    {zones.map(z => (
+                                        <g key={z.id} className="group pointer-events-auto">
+                                            <polygon
+                                                points={z.points.map(p => `${p.x},${p.y}`).join(' ')}
+                                                fill={`${z.color}30`}
+                                                stroke={z.color}
+                                                strokeWidth="3"
+                                                className="transition-all duration-300 group-hover:fill-opacity-60 cursor-pointer"
+                                            />
+                                            <text
+                                                x={z.points.reduce((s, p) => s + p.x, 0) / z.points.length}
+                                                y={z.points.reduce((s, p) => s + p.y, 0) / z.points.length}
+                                                fill="white"
+                                                fontSize="18"
+                                                fontWeight="bold"
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontFamily="monospace"
+                                                className="pointer-events-none select-none"
+                                                style={{ textShadow: '0 0 8px rgba(0,0,0,0.9)' }}
+                                            >
+                                                {z.name}
+                                            </text>
+                                            {z.points[0] && !isDrawingZone && (
+                                                <g
+                                                    transform={`translate(${z.points[0].x}, ${z.points[0].y - 30})`}
+                                                    onClick={(e) => handleDeleteZone(z.id!, e as any)}
+                                                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <rect x="-40" y="-15" width="80" height="30" rx="4" fill="#ef4444" />
+                                                    <text x="0" y="0" fill="white" fontSize="14" fontWeight="bold" textAnchor="middle" dominantBaseline="middle" fontFamily="monospace">DELETE</text>
+                                                </g>
+                                            )}
+                                        </g>
+                                    ))}
+                                    {/* Drawing: Ghost polygon preview (points + mouse) */}
+                                    {isDrawingZone && currentZonePoints.length > 0 && (
+                                        <>
+                                            {(() => {
+                                                const previewPts = mousePos
+                                                    ? [...currentZonePoints, mousePos]
+                                                    : currentZonePoints;
+                                                return previewPts.length >= 2 ? (
+                                                    <polygon
+                                                        points={previewPts.map(p => `${p.x},${p.y}`).join(' ')}
+                                                        fill="rgba(239, 68, 68, 0.15)"
+                                                        stroke="#ef4444"
+                                                        strokeWidth="2.5"
+                                                        strokeDasharray="12 6"
+                                                        className="pointer-events-none"
+                                                    />
+                                                ) : null;
+                                            })()}
+                                            {/* Solid lines between placed points */}
+                                            {currentZonePoints.length >= 2 && currentZonePoints.map((p, i) => {
+                                                if (i === 0) return null;
+                                                const prev = currentZonePoints[i - 1];
+                                                return (
+                                                    <line
+                                                        key={`edge-${i}`}
+                                                        x1={prev.x} y1={prev.y}
+                                                        x2={p.x} y2={p.y}
+                                                        stroke="#ef4444"
+                                                        strokeWidth="3"
+                                                        className="pointer-events-none"
+                                                    />
+                                                );
+                                            })}
+                                            {/* Rubber-band line from last point to cursor */}
+                                            {mousePos && currentZonePoints.length > 0 && (
+                                                <line
+                                                    x1={currentZonePoints[currentZonePoints.length - 1].x}
+                                                    y1={currentZonePoints[currentZonePoints.length - 1].y}
+                                                    x2={mousePos.x}
+                                                    y2={mousePos.y}
+                                                    stroke="#ef4444"
+                                                    strokeWidth="2"
+                                                    strokeDasharray="8 4"
+                                                    opacity="0.7"
+                                                    className="pointer-events-none"
+                                                />
+                                            )}
+                                            {/* Closing line preview (last point to first, dashed) */}
+                                            {currentZonePoints.length >= 3 && (
+                                                <line
+                                                    x1={currentZonePoints[currentZonePoints.length - 1].x}
+                                                    y1={currentZonePoints[currentZonePoints.length - 1].y}
+                                                    x2={currentZonePoints[0].x}
+                                                    y2={currentZonePoints[0].y}
+                                                    stroke="#ef4444"
+                                                    strokeWidth="1.5"
+                                                    strokeDasharray="4 4"
+                                                    opacity="0.3"
+                                                    className="pointer-events-none"
+                                                />
+                                            )}
+                                            {/* Vertex circles with numbers */}
+                                            {currentZonePoints.map((p, i) => (
+                                                <g key={`v-${i}`} className="pointer-events-none">
+                                                    <circle cx={p.x} cy={p.y} r="12" fill="#ef4444" stroke="white" strokeWidth="3" />
+                                                    <text x={p.x} y={p.y} fill="white" fontSize="12" fontWeight="bold" textAnchor="middle" dominantBaseline="middle" fontFamily="monospace">
+                                                        {i + 1}
+                                                    </text>
+                                                </g>
+                                            ))}
+                                            {/* Snap-to-close indicator on first point */}
+                                            {currentZonePoints.length >= 3 && mousePos && (() => {
+                                                const first = currentZonePoints[0];
+                                                const dist = Math.hypot(mousePos.x - first.x, mousePos.y - first.y);
+                                                const snapRadius = Math.max(videoNatRes.w, videoNatRes.h) * 0.02;
+                                                if (dist < snapRadius) {
+                                                    return (
+                                                        <circle
+                                                            cx={first.x} cy={first.y} r="20"
+                                                            fill="rgba(16, 185, 129, 0.4)"
+                                                            stroke="#10B981"
+                                                            strokeWidth="3"
+                                                            className="pointer-events-none animate-pulse"
+                                                        />
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                            {/* Cursor crosshair + coords */}
+                                            {mousePos && (
+                                                <g className="pointer-events-none">
+                                                    <line x1={mousePos.x - 15} y1={mousePos.y} x2={mousePos.x + 15} y2={mousePos.y} stroke="white" strokeWidth="1" opacity="0.5" />
+                                                    <line x1={mousePos.x} y1={mousePos.y - 15} x2={mousePos.x} y2={mousePos.y + 15} stroke="white" strokeWidth="1" opacity="0.5" />
+                                                    <rect x={mousePos.x + 18} y={mousePos.y - 14} width="110" height="24" rx="3" fill="rgba(0,0,0,0.8)" />
+                                                    <text x={mousePos.x + 24} y={mousePos.y + 1} fill="#06B6D4" fontSize="13" fontFamily="monospace" className="select-none">
+                                                        {mousePos.x}, {mousePos.y}
+                                                    </text>
+                                                </g>
+                                            )}
+                                        </>
+                                    )}
+                                    {/* Drawing mode: initial crosshair when no points yet */}
+                                    {isDrawingZone && currentZonePoints.length === 0 && mousePos && (
+                                        <g className="pointer-events-none">
+                                            <line x1={mousePos.x - 20} y1={mousePos.y} x2={mousePos.x + 20} y2={mousePos.y} stroke="#ef4444" strokeWidth="1.5" opacity="0.6" />
+                                            <line x1={mousePos.x} y1={mousePos.y - 20} x2={mousePos.x} y2={mousePos.y + 20} stroke="#ef4444" strokeWidth="1.5" opacity="0.6" />
+                                            <circle cx={mousePos.x} cy={mousePos.y} r="6" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.6" />
+                                            <rect x={mousePos.x + 18} y={mousePos.y - 14} width="110" height="24" rx="3" fill="rgba(0,0,0,0.8)" />
+                                            <text x={mousePos.x + 24} y={mousePos.y + 1} fill="#06B6D4" fontSize="13" fontFamily="monospace">{mousePos.x}, {mousePos.y}</text>
+                                        </g>
+                                    )}
+                                </svg>
+
+                                {/* Drawing instructions overlay */}
+                                {isDrawingZone && (
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 bg-black/90 border border-cyan-500/30 rounded-lg px-5 py-2.5 font-mono text-[11px] text-cyan-300 tracking-wider flex items-center gap-4 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none select-none">
+                                        <span>CLICK to place points</span>
+                                        <span className="text-neutral-600">|</span>
+                                        <span>RIGHT-CLICK to undo</span>
+                                        <span className="text-neutral-600">|</span>
+                                        <span className="text-emerald-400">{currentZonePoints.length >= 3 ? 'CLICK 1st point to close' : `${3 - currentZonePoints.length} more pts needed`}</span>
+                                    </div>
+                                )}
+
+                                <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm text-center px-4 z-20">
+                                    <AlertCircle className="w-6 h-6 text-red-500/50 mb-2" />
+                                    <span className="text-[12px]">CONNECTION FAILED OR STREAM OFFLINE</span>
+                                </div>
+                            </div>
+                        </div>
+                        </motion.div>
+                    </div>
+                )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 }

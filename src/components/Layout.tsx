@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Settings as SettingsIcon } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import Logo from '../assets/Logo-oleyes-holding-2.png';
@@ -37,6 +37,14 @@ export function Layout({ children }: LayoutProps) {
                                 <span className="text-[10px] uppercase font-semibold text-[#10B981] tracking-wider">System Online</span>
                             </div>
                             <div className="flex items-center gap-3 ml-2">
+                                <Link
+                                    to="/zone-rules"
+                                    className="p-2 inline-flex items-center justify-center rounded bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/40 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                                    aria-label="Zone Rules"
+                                    title="ROI Zone Rules"
+                                >
+                                    <MapPin className="w-4 h-4" />
+                                </Link>
                                 <Link
                                     to="/settings"
                                     className="p-2 inline-flex items-center justify-center rounded bg-[#4F46E5]/20 border border-[#4F46E5]/40 text-[#818CF8] hover:bg-[#4F46E5]/40 transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)]"

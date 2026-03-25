@@ -57,6 +57,37 @@ export interface UpdateCameraData {
     is_active?: boolean;
 }
 
+export interface ZonePoint {
+    x: number;
+    y: number;
+}
+
+export interface Zone {
+    id: string;
+    camera_id: string;
+    name: string;
+    points: ZonePoint[];
+    color: string;
+    instruction: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CreateZoneData {
+    camera_id: string;
+    name: string;
+    points: ZonePoint[];
+    color: string;
+    instruction?: string;
+}
+
+export interface UpdateZoneData {
+    name?: string;
+    points?: ZonePoint[];
+    color?: string;
+    instruction?: string;
+}
+
 export interface ChatRequest {
     messages: Message[];
     max_tokens?: number;
@@ -79,12 +110,14 @@ export interface YoloDetectRequest {
 
 export interface YoloDetectRtspRequest {
     rtsp_url: string;
+    camera_id?: string;
     callback_url?: string;
     scene_context?: string;
 }
 
 export interface YoloDetectRtmpRequest {
     stream_key: string;
+    camera_id?: string;
     callback_url?: string;
     scene_context?: string;
 }
@@ -148,11 +181,19 @@ export interface LogicOutput {
     fighting_pairs: string[]; // e.g. "Subject #2 vs #3"
 }
 
+export interface ZoneAlert {
+    type: string;
+    message: string;
+    frame: number;
+    timestamp: number;
+}
+
 export interface YoloStreamMessage {
     status: 'running' | 'done' | 'error' | 'failed';
     frames: number;
     detections: number;
     last_event?: YoloEvent;
+    zone_alerts?: ZoneAlert[];
     logic?: LogicOutput;
     analysis?: {
         risk_score: number;
