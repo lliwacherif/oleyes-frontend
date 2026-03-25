@@ -5,6 +5,102 @@ import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Vi
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
+const renderParsedSummary = (text: string) => {
+    if (!text) return null;
+
+    const eventsPattern = /EVENTS:\s*(.*?)(?=TIMELINE \(recent history\):|CURRENT STATE:|$)/s;
+    const timelinePattern = /TIMELINE \(recent history\):\s*(.*?)(?=CURRENT STATE:|$)/s;
+    const currentStatePattern = /CURRENT STATE:\s*(.*?)$/s;
+
+    const eventsMatch = text.match(eventsPattern);
+    const timelineMatch = text.match(timelinePattern);
+    const currStateMatch = text.match(currentStatePattern);
+
+    const renderEvents = (eventsStr: string) => {
+        const lines = eventsStr.split('- ALERT:').filter(l => l.trim().length > 0);
+        if (lines.length === 0) return <div className="text-[#64748B]">NO SIGNIFICANT ALERTS</div>;
+        return (
+            <div className="space-y-1">
+                {lines.map((l, i) => (
+                    <div key={i} className="flex gap-2 text-amber-400 bg-amber-950/20 p-2 border border-amber-900/30 rounded-sm">
+                        <span className="text-amber-500 font-bold">!</span>
+                        <span className="leading-relaxed">{l.trim()}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const renderTimeline = (timelineStr: string) => {
+        const lines = timelineStr.split(/(?=T-\d+\.\d+s:)/).filter(l => l.trim().length > 0);
+        return (
+            <div className="space-y-2 mt-2">
+                {lines.map((l, i) => {
+                    const match = l.match(/^(T-\d+\.\d+s:)\s*(.*)/);
+                    if (!match) return <div key={i} className="text-[#94A3B8]">{l}</div>;
+                    return (
+                        <div key={i} className="flex flex-col sm:flex-row gap-2 border-l-2 border-[#1E2548] pl-3 py-1 bg-[#121738]/30">
+                            <span className="text-cyan-400 shrink-0 font-bold">{match[1]}</span>
+                            <span className="text-[#94A3B8] leading-relaxed">{match[2]}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderCurrent = (currStr: string) => {
+        const entities = currStr.split(/(?=[A-Z][a-zA-Z\s]*#\d+:)/).filter(l => l.trim().length > 0);
+        if (entities.length <= 1) return <div className="text-emerald-400 mt-2 whitespace-pre-wrap leading-relaxed">{currStr.trim()}</div>;
+        
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                {entities.map((l, i) => (
+                    <div key={i} className="bg-[#10B981]/10 text-emerald-400 p-2 rounded-sm border border-[#10B981]/20">
+                        {l.trim()}
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    if (!eventsMatch && !timelineMatch && !currStateMatch) {
+         return <div className="whitespace-pre-wrap leading-relaxed pl-2 text-[#94A3B8]">{text}</div>;
+    }
+
+    return (
+        <div className="font-mono text-[10px] space-y-5 uppercase">
+            {eventsMatch && (
+                <div>
+                    <div className="text-[#06B6D4] font-bold mb-2 border-b border-[#06B6D4]/30 pb-1 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4]" />
+                        DETECTED EVENTS
+                    </div>
+                    {renderEvents(eventsMatch[1])}
+                </div>
+            )}
+            {timelineMatch && (
+                <div>
+                    <div className="text-[#06B6D4] font-bold mb-2 border-b border-[#06B6D4]/30 pb-1 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4]" />
+                        TIMELINE (RECENT HISTORY)
+                    </div>
+                    {renderTimeline(timelineMatch[1])}
+                </div>
+            )}
+            {currStateMatch && (
+                <div>
+                    <div className="text-[#06B6D4] font-bold mb-2 border-b border-[#06B6D4]/30 pb-1 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.8)]" />
+                        CURRENT STATE
+                    </div>
+                    {renderCurrent(currStateMatch[1])}
+                </div>
+            )}
+        </div>
+    );
+};
+
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
@@ -378,11 +474,24 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     <div className="bg-[#0A0D2A]/40 border border-[#1E2548] rounded-[8px] p-5 font-mono text-[10px] overflow-hidden relative shadow-inner">
                                         <div className="text-[#06B6D4] font-bold mb-3 tracking-widest">[ SYS.LOGIC_SUMMARY ]</div>
                                         <div className="text-neutral-500 mb-2">&gt;</div>
-                                        <div className="text-[#94A3B8] leading-relaxed pl-2 uppercase">
-                                            {logicData.summary_text}
-                                            {logicData.scene_text && (
-                                                <div className="mt-2 text-[#64748B]">
-                                                    {logicData.scene_text}
+                                        <div className="text-[#94A3B8] leading-relaxed pt-2">
+                                            {logicData.summary_text ? renderParsedSummary(logicData.summary_text) : null}
+                                            
+                                            {logicData.scene_text && logicData.scene_text !== logicData.summary_text && (
+                                                <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-[#1E2548]/50" : ""}>
+                                                    {(() => {
+                                                        const isParsed = logicData.scene_text.includes('EVENTS:') || logicData.scene_text.includes('TIMELINE');
+                                                        if (isParsed) {
+                                                            return renderParsedSummary(logicData.scene_text);
+                                                        } else {
+                                                            return (
+                                                                <div className="text-[#64748B]">
+                                                                    <span className="text-[#06B6D4] font-bold mb-1 block">SCENE_CONTEXT:</span>
+                                                                    {logicData.scene_text}
+                                                                </div>
+                                                            );
+                                                        }
+                                                    })()}
                                                 </div>
                                             )}
                                         </div>
@@ -422,10 +531,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     </div>
                                 )}
 
-                                {/* Logic Details Grid */}
-                                <div className="grid grid-cols-1 gap-4 mt-4">
+                                    {/* Critical Events Grid */}
                                     {(logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
-                                        <div className="bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]">
+                                        <div className="bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)] mb-4">
                                             <h4 className="text-red-400 font-mono text-xs tracking-widest mb-3 flex items-center gap-2 uppercase">
                                                 <Activity className="w-4 h-4" /> [CRITICAL_EVENTS_DETECTED]
                                             </h4>
@@ -443,77 +551,89 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                             </div>
                                         </div>
                                     )}
+                                </div>
+                        )}
 
+                        {/* Bottom Side-by-Side Grid: Batch Log & Tracked Entities */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            
+                            {/* Detailed Batch Processing Log (Left/Main, Col-Span 2) */}
+                            <div className="lg:col-span-2 flex flex-col h-full">
+                                {currentBatch.length > 0 ? (
+                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] shadow-inner overflow-hidden flex flex-col flex-1 max-h-[300px]">
+                                        <div className="border-b border-[#1E2548] px-5 py-4 flex items-center justify-between shrink-0 bg-[#060818]/60">
+                                            <h3 className="text-[#94A3B8] font-bold text-[11px] tracking-widest flex items-center gap-2 uppercase">
+                                                <span className="text-neutral-500">&gt;_</span> PROCESSING BATCH LOG
+                                            </h3>
+                                            <span className="text-[10px] font-mono text-[#64748B] bg-[#1E2548]/50 px-2 py-0.5 rounded-sm tracking-widest uppercase">
+                                                BUFFER: {currentBatch.length}
+                                            </span>
+                                        </div>
 
-
-                                    {/* Tracked Entities */}
-                                    {(logicData?.objects?.length > 0) && (
-                                        <div className="bg-[#0A0D2A]/40 rounded-[8px] p-5 border border-[#1E2548] shadow-inner flex flex-col">
-                                            <h4 className="text-white font-bold text-[11px] tracking-widest mb-4 flex items-center justify-between border-b border-[#1E2548] pb-4">
-                                                <div className="flex items-center gap-2 uppercase">
-                                                    <Users className="w-4 h-4 text-[#A855F7]" /> [ TRACKED_ENTITIES ]
+                                        <div className="p-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+                                            {currentBatch.map((frame, i) => (
+                                                <div key={i} className="flex gap-4 pb-2 font-mono text-[9px] uppercase leading-relaxed border-b border-[#1E2548]/30 last:border-0 last:pb-0">
+                                                    <span className="text-[#64748B] shrink-0 select-none bg-black/40 px-1 rounded h-max py-0.5">
+                                                        [{String(frame.frame_index).padStart(5, '0')}]
+                                                    </span>
+                                                    <span className="text-[#10B981] break-words flex-1">
+                                                        {frame.scene_text || `NO_METADATA_EXTRACTED_FOR_FRAME`}
+                                                    </span>
                                                 </div>
-                                                <span className="text-white bg-[#A855F7]/40 px-3 py-1 text-[10px] rounded-sm font-mono tracking-widest uppercase">
-                                                    COUNT : {logicData.objects.length}
-                                                </span>
-                                            </h4>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] flex items-center justify-center flex-1 min-h-[150px] text-[#64748B] text-xs font-mono tracking-widest uppercase">
+                                        INITIALIZING CAMERA BATCHES...
+                                    </div>
+                                )}
+                            </div>
 
-                                            {/* Tabular Header */}
-                                            <div className="grid grid-cols-12 text-[9px] font-medium text-neutral-500 mb-3 uppercase px-4 pt-2">
-                                                <div className="col-span-6">ID(ZONE)</div>
-                                                <div className="col-span-3">VELOCITY</div>
-                                                <div className="col-span-3 text-right">DWELL_TM</div>
+                            {/* Tracked Entities (Right, Col-Span 1) */}
+                            <div className="lg:col-span-1 flex flex-col h-full">
+                                {((logicData?.objects?.length ?? 0) > 0) ? (
+                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] shadow-inner flex flex-col flex-1 max-h-[300px]">
+                                        <div className="px-4 py-4 shrink-0 border-b border-[#1E2548] bg-[#060818]/60 flex justify-between items-center">
+                                            <div className="flex items-center gap-2 text-white font-bold text-[10px] tracking-widest uppercase">
+                                                <Users className="w-3.5 h-3.5 text-[#A855F7]" /> [ ENTITIES ]
                                             </div>
+                                            <span className="text-white bg-[#A855F7]/40 px-2 py-0.5 text-[9px] rounded-sm font-mono tracking-widest uppercase shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                                                {logicData?.objects?.length || 0} TRACKED
+                                            </span>
+                                        </div>
 
-                                            <div className="space-y-3 overflow-y-auto max-h-[200px] custom-scrollbar px-4 pb-2">
-                                                {(logicData.objects || []).map((obj) => (
-                                                    <div key={obj.track_id} className="grid grid-cols-12 text-[11px] font-mono items-center transition-all group/row font-semibold">
-                                                        <div className="col-span-6 flex items-center gap-1.5 tracking-wider">
-                                                            <span className="text-white">#{obj.track_id}</span>
-                                                            <span className="text-[#64748B]">({obj.zone})</span>
-                                                        </div>
-                                                        <div className="col-span-3 text-[#06B6D4]">
-                                                            {obj.speed.toFixed(1)} <span className="text-[10px] text-[#64748B]">m/s</span>
-                                                        </div>
-                                                        <div className="col-span-3 text-right text-[#EAB308]">
-                                                            {obj.loiter_seconds} <span className="text-[10px] text-[#64748B]">sec</span>
-                                                        </div>
+                                        {/* Tabular Header */}
+                                        <div className="grid grid-cols-12 text-[8px] font-bold text-neutral-500 uppercase px-3 pt-3 pb-2 shrink-0 tracking-widest border-b border-[#1E2548]/50">
+                                            <div className="col-span-6">ID(ZONE)</div>
+                                            <div className="col-span-3 text-center">VEL</div>
+                                            <div className="col-span-3 text-right">DWELL</div>
+                                        </div>
+
+                                        <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar px-3 py-2">
+                                            {(logicData?.objects || []).map((obj: any) => (
+                                                <div key={obj.track_id} className="grid grid-cols-12 text-[10px] font-mono items-center transition-all group/row font-semibold bg-[#121738]/30 hover:bg-[#121738]/60 p-1.5 rounded border border-[#1E2548]/30">
+                                                    <div className="col-span-6 flex items-center gap-1.5 tracking-wider truncate pr-1">
+                                                        <span className="text-white">#{obj.track_id}</span>
+                                                        <span className="text-[#64748B] text-[8px] truncate">({obj.zone || '-'})</span>
                                                     </div>
-                                                ))}
-                                            </div>
+                                                    <div className="col-span-3 text-[#06B6D4] text-center">
+                                                        {obj.speed.toFixed(1)}
+                                                    </div>
+                                                    <div className="col-span-3 text-right text-[#EAB308]">
+                                                        {obj.loiter_seconds}s
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    )}
-
-                                </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] flex items-center justify-center flex-1 min-h-[150px] text-[#64748B] text-[10px] text-center px-4 font-mono tracking-widest uppercase">
+                                        NO ACTIVE TRACKED ENTITIES
+                                    </div>
+                                )}
                             </div>
-                        )}
-
-                        {/* Detailed Batch Processing Log */}
-                        {currentBatch.length > 0 && (
-                            <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] shadow-inner mt-6 overflow-hidden">
-                                <div className="border-b border-[#1E2548] px-5 py-4 flex items-center justify-between">
-                                    <h3 className="text-[#94A3B8] font-bold text-[11px] tracking-widest flex items-center gap-2 uppercase">
-                                        <span className="text-neutral-500">&gt;_</span> PROCESSING BATCH LOG
-                                    </h3>
-                                    <span className="text-[10px] font-mono text-[#64748B] bg-[#1E2548]/50 px-3 py-1 rounded-sm tracking-widest uppercase">
-                                        BUFFER: {currentBatch.length} FRAMES
-                                    </span>
-                                </div>
-
-                                <div className="p-5 space-y-2 h-[200px] overflow-y-auto custom-scrollbar">
-                                    {currentBatch.map((frame, i) => (
-                                        <div key={i} className="flex gap-4 pb-1 mb-1 font-mono text-[9px] uppercase leading-relaxed">
-                                            <span className="text-[#64748B] shrink-0 select-none">
-                                                [{String(frame.frame_index).padStart(5, '0')}]:
-                                            </span>
-                                            <span className="text-[#10B981] break-words flex-1">
-                                                {frame.scene_text || `NO_METADATA_EXTRACTED_FOR_FRAME`}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
