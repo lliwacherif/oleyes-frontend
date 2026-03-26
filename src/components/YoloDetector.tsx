@@ -102,6 +102,24 @@ const renderParsedSummary = (text: string) => {
     );
 };
 
+// Skeleton types & constants
+interface SkeletonKeypoint { x: number; y: number; conf: number; }
+interface SkeletonPerson { track_id: number; bbox: [number, number, number, number]; keypoints: SkeletonKeypoint[]; }
+interface SkeletonFrame { persons: SkeletonPerson[]; frame_index: number; }
+
+const SKELETON_EDGES: [number, number, string][] = [
+    [0, 1, "#06B6D4"], [0, 2, "#06B6D4"],     // nose→eyes (cyan)
+    [1, 3, "#06B6D4"], [2, 4, "#06B6D4"],     // eyes→ears (cyan)
+    [5, 6, "#10B981"],                          // shoulder→shoulder (green)
+    [5, 7, "#8B5CF6"], [7, 9, "#8B5CF6"],     // left arm (purple)
+    [6, 8, "#3B82F6"], [8, 10, "#3B82F6"],    // right arm (blue)
+    [5, 11, "#10B981"], [6, 12, "#10B981"],   // torso (green)
+    [11, 12, "#10B981"],                        // hip→hip (green)
+    [11, 13, "#EF4444"], [13, 15, "#EF4444"], // left leg (red)
+    [12, 14, "#F97316"], [14, 16, "#F97316"], // right leg (orange)
+];
+const MIN_CONF = 0.3;
+
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
@@ -124,15 +142,53 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const streamImgRef = useRef<HTMLImageElement>(null);
     const streamSvgRef = useRef<SVGSVGElement>(null);
 
+    // Skeleton overlay state
+    const [skeletonActive, setSkeletonActive] = useState(false);
+    const [skeletonData, setSkeletonData] = useState<SkeletonFrame | null>(null);
+    const skeletonSourceRef = useRef<EventSource | null>(null);
+
     useEffect(() => {
         if (viewingCameraId) {
             api.getZones(viewingCameraId).then(setZones).catch(console.error);
         } else {
             setZones([]);
+            // Clean up skeleton when closing camera
+            skeletonSourceRef.current?.close();
+            skeletonSourceRef.current = null;
+            setSkeletonData(null);
+            setSkeletonActive(false);
             setIsDrawingZone(false);
             setCurrentZonePoints([]);
         }
     }, [viewingCameraId]);
+
+    // Skeleton cleanup on unmount
+    useEffect(() => {
+        return () => { skeletonSourceRef.current?.close(); };
+    }, []);
+
+    const toggleSkeleton = (cameraId: string) => {
+        if (skeletonActive) {
+            skeletonSourceRef.current?.close();
+            skeletonSourceRef.current = null;
+            setSkeletonData(null);
+            setSkeletonActive(false);
+            return;
+        }
+        const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const token = localStorage.getItem('access_token');
+        const src = new EventSource(`${API}/api/v1/cameras/${cameraId}/skeleton?token=${token}`);
+        src.onmessage = (e) => {
+            try { setSkeletonData(JSON.parse(e.data)); } catch {}
+        };
+        src.onerror = () => {
+            src.close();
+            skeletonSourceRef.current = null;
+            setSkeletonActive(false);
+        };
+        skeletonSourceRef.current = src;
+        setSkeletonActive(true);
+    };
 
     const svgCoordsFromEvent = (e: React.MouseEvent<SVGSVGElement>): ZonePoint => {
         const svg = e.currentTarget;
@@ -178,14 +234,13 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
         setIsSavingZone(true);
         try {
-            const zName = prompt("Enter a name for this Zone (e.g. Restricted Area):") || "New Zone";
-            const zInstruction = prompt("Zone instruction (e.g. 'Alert if person enters'):") || "";
+            const zName = `Zone ${zones.length + 1}`;
             const newZone = await api.createZone({
                 camera_id: viewingCameraId,
                 name: zName,
                 points: currentZonePoints,
                 color: "#EF4444",
-                instruction: zInstruction,
+                instruction: "",
             });
             setZones(prev => [...prev, newZone]);
         } catch (err) {
@@ -347,7 +402,12 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                 }
 
                 // x. Zone Alerts
+                // DEBUG: Log every SSE message's zone_alerts field
+                if (data.zone_alerts !== undefined) {
+                    console.log('[ZONE_DEBUG] zone_alerts received:', JSON.stringify(data.zone_alerts));
+                }
                 if (data.zone_alerts && data.zone_alerts.length > 0) {
+                    console.log('[ZONE_DEBUG] ✅ Setting zone alerts:', data.zone_alerts.length, 'alerts');
                     setZoneAlerts(prev => {
                         const newAlerts = [...data.zone_alerts!, ...prev];
                         // limit to top 15 alerts to avoid memory leak
@@ -842,6 +902,17 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 )}
                                 <div className="w-px h-6 bg-[#1E2548]" />
                                 <button
+                                    onClick={() => toggleSkeleton(viewingCameraId!)}
+                                    className={`px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border ${
+                                        skeletonActive
+                                            ? 'bg-purple-500/20 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
+                                            : 'bg-[#A855F7]/10 text-[#A855F7] border-[#A855F7]/30 hover:bg-[#A855F7]/20'
+                                    }`}
+                                >
+                                    {skeletonActive ? 'SKELETON ON' : 'SKELETON'}
+                                </button>
+                                <div className="w-px h-6 bg-[#1E2548]" />
+                                <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setViewingCameraId(null);
@@ -927,6 +998,37 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                             )}
                                         </g>
                                     ))}
+
+                                    {/* Skeleton overlay */}
+                                    {skeletonData?.persons.map(person => (
+                                        <g key={`skel-${person.track_id}`}>
+                                            {SKELETON_EDGES.map(([from, to, color], ei) => {
+                                                const a = person.keypoints[from];
+                                                const b = person.keypoints[to];
+                                                if (!a || !b || a.conf < MIN_CONF || b.conf < MIN_CONF) return null;
+                                                return (
+                                                    <line
+                                                        key={`e-${person.track_id}-${ei}`}
+                                                        x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                                                        stroke={color} strokeWidth="4" strokeLinecap="round"
+                                                        opacity="0.85" className="pointer-events-none"
+                                                    />
+                                                );
+                                            })}
+                                            {person.keypoints.map((kp, ki) => {
+                                                if (kp.conf < MIN_CONF) return null;
+                                                return (
+                                                    <circle
+                                                        key={`j-${person.track_id}-${ki}`}
+                                                        cx={kp.x} cy={kp.y} r="5"
+                                                        fill="white" stroke="rgba(0,0,0,0.5)" strokeWidth="1.5"
+                                                        className="pointer-events-none"
+                                                    />
+                                                );
+                                            })}
+                                        </g>
+                                    ))}
+
                                     {/* Drawing: Ghost polygon preview (points + mouse) */}
                                     {isDrawingZone && currentZonePoints.length > 0 && (
                                         <>
