@@ -379,10 +379,8 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                     setLogicData(data.logic);
                 }
 
-                // x. Zone Alerts — replace instead of accumulating
-                if (data.zone_alerts !== undefined) {
-                    setZoneAlerts(data.zone_alerts.length > 0 ? data.zone_alerts : []);
-                }
+                // x. Zone Alerts — force replace. If omitted entirely, it sets to [].
+                setZoneAlerts(data.zone_alerts || []);
 
                 // 3. LLM Analysis (every 8 frames or when backend sends it)
                 if (data.analysis) {
@@ -613,7 +611,10 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                 className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-[8px] px-5 py-3 font-mono text-[11px] mb-4 flex items-center gap-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
                                             >
                                                 <AlertCircle className="w-4 h-4 text-[#EF4444] animate-pulse flex-shrink-0" />
-                                                <span className="text-[#FCA5A5] flex-1">{zoneAlerts[0].message}</span>
+                                                <span className="text-[#FCA5A5] flex-1">
+                                                    <span className="text-[#EF4444] font-bold mr-2">[{new Date((zoneAlerts[0].timestamp > 1e11 ? zoneAlerts[0].timestamp : zoneAlerts[0].timestamp * 1000)).toLocaleTimeString('en-US', { hour12: false })}]</span>
+                                                    {zoneAlerts[0].message}
+                                                </span>
                                                 <span className="text-[#EF4444]/40 text-[9px] flex-shrink-0">FRAME_{zoneAlerts[0].frame}</span>
                                             </motion.div>
                                         )}
