@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../api/client';
 import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData, Zone, ZonePoint, ZoneAlert } from '../api/types';
-import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X } from 'lucide-react';
+import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
@@ -146,6 +146,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const [skeletonActive, setSkeletonActive] = useState(false);
     const [skeletonData, setSkeletonData] = useState<SkeletonFrame | null>(null);
     const skeletonSourceRef = useRef<EventSource | null>(null);
+
+    // Logic Engine accordion state
+    const [isLogicExpanded, setIsLogicExpanded] = useState(false);
 
     useEffect(() => {
         if (viewingCameraId) {
@@ -403,11 +406,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                 // x. Zone Alerts — replace instead of accumulating
                 if (data.zone_alerts !== undefined) {
-                    if (data.zone_alerts.length > 0) {
-                        setZoneAlerts(data.zone_alerts);
-                    } else {
-                        setZoneAlerts([]);
-                    }
+                    setZoneAlerts(data.zone_alerts.length > 0 ? data.zone_alerts : []);
                 }
 
                 // 3. LLM Analysis (every 8 frames or when backend sends it)
@@ -645,35 +644,55 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         )}
                                     </AnimatePresence>
 
-                                    <h3 className="text-[14px] font-bold tracking-widest mb-4 flex items-center gap-2 text-white uppercase">
-                                        <ShieldAlert className="w-4 h-4 text-white" />
-                                        LOGIC ENGINE ANALYSIS
-                                    </h3>
-                                    <div className="bg-[#0A0D2A]/40 border border-[#1E2548] rounded-[8px] p-5 font-mono text-[10px] overflow-hidden relative shadow-inner">
-                                        <div className="text-[#06B6D4] font-bold mb-3 tracking-widest">[ SYS.LOGIC_SUMMARY ]</div>
-                                        <div className="text-neutral-500 mb-2">&gt;</div>
-                                        <div className="text-[#94A3B8] leading-relaxed pt-2">
-                                            {logicData.summary_text ? renderParsedSummary(logicData.summary_text) : null}
-
-                                            {logicData.scene_text && logicData.scene_text !== logicData.summary_text && (
-                                                <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-[#1E2548]/50" : ""}>
-                                                    {(() => {
-                                                        const isParsed = logicData.scene_text.includes('EVENTS:') || logicData.scene_text.includes('TIMELINE');
-                                                        if (isParsed) {
-                                                            return renderParsedSummary(logicData.scene_text);
-                                                        } else {
-                                                            return (
-                                                                <div className="text-[#64748B]">
-                                                                    <span className="text-[#06B6D4] font-bold mb-1 block">SCENE_CONTEXT:</span>
-                                                                    {logicData.scene_text}
-                                                                </div>
-                                                            );
-                                                        }
-                                                    })()}
-                                                </div>
-                                            )}
+                                    <button 
+                                        onClick={() => setIsLogicExpanded(!isLogicExpanded)}
+                                        className="w-full flex items-center justify-between mb-4 group focus:outline-none"
+                                    >
+                                        <h3 className="text-[14px] font-bold tracking-widest flex items-center gap-2 text-white uppercase transition-colors group-hover:text-cyan-400">
+                                            <ShieldAlert className="w-4 h-4" />
+                                            LOGIC ENGINE ANALYSIS
+                                        </h3>
+                                        <div className="p-1 rounded bg-[#10B981]/10 border border-[#10B981]/20 group-hover:bg-[#10B981]/20 transition-colors">
+                                            {isLogicExpanded ? <ChevronUp className="w-4 h-4 text-[#10B981]" /> : <ChevronDown className="w-4 h-4 text-[#10B981]" />}
                                         </div>
-                                    </div>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isLogicExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="bg-[#0A0D2A]/40 border border-[#1E2548] rounded-[8px] p-5 font-mono text-[10px] relative shadow-inner mb-6">
+                                                    <div className="text-[#06B6D4] font-bold mb-3 tracking-widest">[ SYS.LOGIC_SUMMARY ]</div>
+                                                    <div className="text-neutral-500 mb-2">&gt;</div>
+                                                    <div className="text-[#94A3B8] leading-relaxed pt-2">
+                                                        {logicData.summary_text ? renderParsedSummary(logicData.summary_text) : null}
+
+                                                        {logicData.scene_text && logicData.scene_text !== logicData.summary_text && (
+                                                            <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-[#1E2548]/50" : ""}>
+                                                                {(() => {
+                                                                    const isParsed = logicData.scene_text.includes('EVENTS:') || logicData.scene_text.includes('TIMELINE');
+                                                                    if (isParsed) {
+                                                                        return renderParsedSummary(logicData.scene_text);
+                                                                    } else {
+                                                                        return (
+                                                                            <div className="text-[#64748B]">
+                                                                                <span className="text-[#06B6D4] font-bold mb-1 block">SCENE_CONTEXT:</span>
+                                                                                {logicData.scene_text}
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                })()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 {/* Tactical Assessment */}
