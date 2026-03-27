@@ -401,18 +401,13 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                     setLogicData(data.logic);
                 }
 
-                // x. Zone Alerts
-                // DEBUG: Log every SSE message's zone_alerts field
+                // x. Zone Alerts — replace instead of accumulating
                 if (data.zone_alerts !== undefined) {
-                    console.log('[ZONE_DEBUG] zone_alerts received:', JSON.stringify(data.zone_alerts));
-                }
-                if (data.zone_alerts && data.zone_alerts.length > 0) {
-                    console.log('[ZONE_DEBUG] ✅ Setting zone alerts:', data.zone_alerts.length, 'alerts');
-                    setZoneAlerts(prev => {
-                        const newAlerts = [...data.zone_alerts!, ...prev];
-                        // limit to top 15 alerts to avoid memory leak
-                        return newAlerts.slice(0, 15);
-                    });
+                    if (data.zone_alerts.length > 0) {
+                        setZoneAlerts(data.zone_alerts);
+                    } else {
+                        setZoneAlerts([]);
+                    }
                 }
 
                 // 3. LLM Analysis (every 8 frames or when backend sends it)
@@ -634,33 +629,18 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                                 {/* Logic Engine Analysis Block */}
                                 <div className="mb-6">
-                                    {/* ZONE ALERTS UI */}
+                                    {/* ZONE ALERT — single banner */}
                                     <AnimatePresence>
                                         {zoneAlerts.length > 0 && (
                                             <motion.div 
-                                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                                                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
-                                                className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-[8px] p-5 font-mono text-[10px] overflow-hidden relative shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-[8px] px-5 py-3 font-mono text-[11px] mb-4 flex items-center gap-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
                                             >
-                                                <div className="text-[#EF4444] font-bold mb-3 tracking-widest flex items-center gap-2">
-                                                    <AlertCircle className="w-4 h-4 animate-pulse" />
-                                                    [ ZONE_INTRUSION_ALERTS ]
-                                                </div>
-                                                <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
-                                                    {zoneAlerts.map((za, idx) => (
-                                                        <motion.div 
-                                                            key={`${za.timestamp}-${idx}`}
-                                                            initial={{ opacity: 0, x: -20 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            className="bg-[#EF4444]/20 border-l-2 border-[#EF4444] text-[#FCA5A5] pl-3 py-1.5 flex justify-between items-center group"
-                                                        >
-                                                            <span>{za.message}</span>
-                                                            <span className="text-[#EF4444]/50 text-[8px] group-hover:text-[#EF4444]/80 hidden sm:inline shrink-0 ml-4">
-                                                                FRAME_{za.frame}
-                                                            </span>
-                                                        </motion.div>
-                                                    ))}
-                                                </div>
+                                                <AlertCircle className="w-4 h-4 text-[#EF4444] animate-pulse flex-shrink-0" />
+                                                <span className="text-[#FCA5A5] flex-1">{zoneAlerts[0].message}</span>
+                                                <span className="text-[#EF4444]/40 text-[9px] flex-shrink-0">FRAME_{zoneAlerts[0].frame}</span>
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
