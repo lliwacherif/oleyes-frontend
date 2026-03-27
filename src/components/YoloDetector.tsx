@@ -9,28 +9,11 @@ import ReactMarkdown from 'react-markdown';
 const renderParsedSummary = (text: string) => {
     if (!text) return null;
 
-    const eventsPattern = /EVENTS:\s*(.*?)(?=TIMELINE \(recent history\):|CURRENT STATE:|$)/s;
     const timelinePattern = /TIMELINE \(recent history\):\s*(.*?)(?=CURRENT STATE:|$)/s;
     const currentStatePattern = /CURRENT STATE:\s*(.*?)$/s;
 
-    const eventsMatch = text.match(eventsPattern);
     const timelineMatch = text.match(timelinePattern);
     const currStateMatch = text.match(currentStatePattern);
-
-    const renderEvents = (eventsStr: string) => {
-        const lines = eventsStr.split('- ALERT:').filter(l => l.trim().length > 0);
-        if (lines.length === 0) return <div className="text-[#64748B]">NO SIGNIFICANT ALERTS</div>;
-        return (
-            <div className="space-y-1">
-                {lines.map((l, i) => (
-                    <div key={i} className="flex gap-2 text-amber-400 bg-amber-950/20 p-2 border border-amber-900/30 rounded-sm">
-                        <span className="text-amber-500 font-bold">!</span>
-                        <span className="leading-relaxed">{l.trim()}</span>
-                    </div>
-                ))}
-            </div>
-        );
-    };
 
     const renderTimeline = (timelineStr: string) => {
         const lines = timelineStr.split(/(?=T-\d+\.\d+s:)/).filter(l => l.trim().length > 0);
@@ -65,21 +48,12 @@ const renderParsedSummary = (text: string) => {
         );
     };
 
-    if (!eventsMatch && !timelineMatch && !currStateMatch) {
+    if (!timelineMatch && !currStateMatch) {
         return <div className="whitespace-pre-wrap leading-relaxed pl-2 text-[#94A3B8]">{text}</div>;
     }
 
     return (
         <div className="font-mono text-[10px] space-y-5 uppercase">
-            {eventsMatch && (
-                <div>
-                    <div className="text-[#06B6D4] font-bold mb-2 border-b border-[#06B6D4]/30 pb-1 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4]" />
-                        DETECTED EVENTS
-                    </div>
-                    {renderEvents(eventsMatch[1])}
-                </div>
-            )}
             {timelineMatch && (
                 <div>
                     <div className="text-[#06B6D4] font-bold mb-2 border-b border-[#06B6D4]/30 pb-1 flex items-center gap-2">
@@ -149,6 +123,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
     // Logic Engine accordion state
     const [isLogicExpanded, setIsLogicExpanded] = useState(false);
+    const [isRawLogsExpanded, setIsRawLogsExpanded] = useState(false);
 
     useEffect(() => {
         if (viewingCameraId) {
@@ -752,7 +727,30 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                         )}
 
                         {/* Bottom Side-by-Side Grid: Batch Log & Tracked Entities */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="mt-8 mb-4">
+                            <button
+                                onClick={() => setIsRawLogsExpanded(!isRawLogsExpanded)}
+                                className="w-full flex items-center justify-between group focus:outline-none"
+                            >
+                                <h3 className="text-[14px] font-bold tracking-widest flex items-center gap-2 text-neutral-400 uppercase transition-colors group-hover:text-[#A855F7]">
+                                    <Activity className="w-4 h-4" />
+                                    RAW ENGINE LOGS & ENTITIES
+                                </h3>
+                                <div className="p-1 rounded bg-[#A855F7]/10 border border-[#A855F7]/20 group-hover:bg-[#A855F7]/20 transition-colors">
+                                    {isRawLogsExpanded ? <ChevronUp className="w-4 h-4 text-[#A855F7]" /> : <ChevronDown className="w-4 h-4 text-[#A855F7]" />}
+                                </div>
+                            </button>
+                        </div>
+
+                        <AnimatePresence>
+                            {isRawLogsExpanded && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-2">
 
                             {/* Detailed Batch Processing Log (Left/Main, Col-Span 2) */}
                             <div className="lg:col-span-2 flex flex-col h-full">
@@ -830,7 +828,10 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 )}
             </AnimatePresence>
