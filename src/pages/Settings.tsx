@@ -9,7 +9,7 @@ export function Settings() {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isContextModalOpen, setIsContextModalOpen] = useState(false);
     const [isZonesModalOpen, setIsZonesModalOpen] = useState(false);
-    const { setSceneContext } = useSettings();
+    const { setSceneContext, poseTheftMode, setPoseTheftMode } = useSettings();
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -235,6 +235,27 @@ export function Settings() {
                         <p className="text-neutral-400 text-sm">View and manage detection zones configured on your cameras.</p>
                     </button>
                 </div>
+
+                {/* AI Engine Configuration Section */}
+                <div className="mt-8 bg-white/5 border border-white/5 rounded-2xl p-6">
+                    <h2 className="text-xl font-bold text-white mb-6">AI Engine Configuration</h2>
+                    
+                    <div className="flex items-start justify-between bg-black/20 p-5 rounded-xl border border-white/5">
+                        <div className="max-w-2xl text-left">
+                            <h3 className="text-white font-semibold mb-1">Advanced Theft Mode (Pose AI)</h3>
+                            <p className="text-neutral-400 text-sm leading-relaxed">
+                                Switches the AI engine to track skeletal movements (wrists/hips) for extreme accuracy in shoplifting detection. Uses more server resources.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setPoseTheftMode(!poseTheftMode)}
+                            className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${poseTheftMode ? 'bg-emerald-500' : 'bg-white/20'}`}
+                        >
+                            <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${poseTheftMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Password Modal */}
@@ -353,10 +374,14 @@ export function Settings() {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 flex justify-between items-center border-t border-white/10 mt-6">
-                                    <div className="bg-black/20 px-4 py-2 rounded-lg border border-white/5 text-xs text-neutral-400 max-w-sm truncate" title={contextData.context_text}>
-                                        Generated Context: {contextData.context_text ? contextData.context_text.substring(0, 50) + "..." : "None"}
+                                <div className="border-t border-white/10 mt-6 pt-6">
+                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Generated Context</h4>
+                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 text-sm text-neutral-300 leading-relaxed min-h-[80px] max-h-[200px] overflow-y-auto custom-scrollbar whitespace-pre-wrap">
+                                        {contextData.context_text || "None"}
                                     </div>
+                                </div>
+
+                                <div className="pt-4 flex justify-end mt-2">
                                     <button
                                         type="submit"
                                         disabled={loading}

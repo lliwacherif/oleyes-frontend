@@ -5,6 +5,7 @@ import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData, Zone, 
 import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import { useSettings } from '../contexts/SettingsContext';
 
 const renderParsedSummary = (text: string) => {
     if (!text) return null;
@@ -95,6 +96,7 @@ const SKELETON_EDGES: [number, number, string][] = [
 const MIN_CONF = 0.3;
 
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
+    const { poseTheftMode } = useSettings();
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [logicData, setLogicData] = useState<LogicOutput | null>(null);
@@ -274,7 +276,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
         try {
             const cleanUrl = targetUrl.trim();
-            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId);
+            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId, poseTheftMode);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -309,7 +311,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         try {
             const parts = streamKey.split('/');
             const cleanKey = parts[parts.length - 1].trim();
-            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId);
+            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId, poseTheftMode);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -593,6 +595,13 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                     <div className="text-sm font-mono font-bold px-4 py-1.5 rounded-sm bg-[#050505] border border-current relative z-10">
                                                         [ {analysisData.risk_level} RISK ]
                                                     </div>
+
+                                                    {poseTheftMode && analysisData.explanation && (
+                                                        <div className="mt-5 pt-5 border-t border-[#2A2A35] text-xs font-mono opacity-90 relative z-10 text-left w-full max-w-2xl mx-auto">
+                                                            <span className="opacity-50 tracking-widest uppercase block mb-2 text-[#06B6D4]">TACTICAL ANALYSIS:</span>
+                                                            <div className="whitespace-pre-wrap leading-relaxed">{analysisData.explanation}</div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })()}
@@ -620,10 +629,12 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         )}
                                     </AnimatePresence>
 
-                                    <button 
-                                        onClick={() => setIsLogicExpanded(!isLogicExpanded)}
-                                        className="w-full flex items-center justify-between mb-4 group focus:outline-none"
-                                    >
+                                    {!poseTheftMode && (
+                                        <>
+                                            <button 
+                                                onClick={() => setIsLogicExpanded(!isLogicExpanded)}
+                                                className="w-full flex items-center justify-between mb-4 group focus:outline-none"
+                                            >
                                         <h3 className="text-[14px] font-bold tracking-widest flex items-center gap-2 text-white uppercase transition-colors group-hover:text-cyan-400">
                                             <ShieldAlert className="w-4 h-4" />
                                             LOGIC ENGINE ANALYSIS
@@ -669,10 +680,12 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
+                                    </>
+                                    )}
                                 </div>
 
                                 {/* Tactical Assessment */}
-                                {llmAnalysis && (
+                                {!poseTheftMode && llmAnalysis && (
                                     <div className="mb-6 bg-[#0A0D2A]/40 border border-[#1E2548] rounded-[8px] p-5 shadow-inner">
                                         <div className="flex items-center justify-between mb-4 border-b border-[#1E2548] pb-4">
                                             <h4 className="text-[#10B981] font-bold text-[11px] tracking-widest flex items-center gap-2 uppercase">
@@ -705,7 +718,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 )}
 
                                 {/* Critical Events Grid */}
-                                {(logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
+                                {!poseTheftMode && (logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
                                     <div className="bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)] mb-4">
                                         <h4 className="text-red-400 font-mono text-xs tracking-widest mb-3 flex items-center gap-2 uppercase">
                                             <Activity className="w-4 h-4" /> [CRITICAL_EVENTS_DETECTED]
@@ -728,8 +741,10 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                         )}
 
                         {/* Bottom Side-by-Side Grid: Batch Log & Tracked Entities */}
-                        <div className="mt-8 mb-4">
-                            <button
+                        {!poseTheftMode && (
+                        <>
+                            <div className="mt-8 mb-4">
+                                <button
                                 onClick={() => setIsRawLogsExpanded(!isRawLogsExpanded)}
                                 className="w-full flex items-center justify-between group focus:outline-none"
                             >
@@ -833,6 +848,8 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 </motion.div>
                             )}
                         </AnimatePresence>
+                        </>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

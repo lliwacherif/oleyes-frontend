@@ -5,12 +5,15 @@ import { useAuth } from './AuthContext';
 interface SettingsContextType {
     sceneContext: string;
     setSceneContext: (context: string) => void;
+    poseTheftMode: boolean;
+    setPoseTheftMode: (mode: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
     const [sceneContext, setSceneContext] = useState(localStorage.getItem('sceneContext') || '');
+    const [poseTheftMode, setPoseTheftModeState] = useState(localStorage.getItem('poseTheftMode') === 'true');
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -35,8 +38,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('sceneContext', value);
     };
 
+    const setPoseTheftMode = (value: boolean) => {
+        setPoseTheftModeState(value);
+        localStorage.setItem('poseTheftMode', String(value));
+    };
+
     return (
-        <SettingsContext.Provider value={{ sceneContext, setSceneContext: handleSetSceneContext }}>
+        <SettingsContext.Provider value={{ sceneContext, setSceneContext: handleSetSceneContext, poseTheftMode, setPoseTheftMode }}>
             {children}
         </SettingsContext.Provider>
     );

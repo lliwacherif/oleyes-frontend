@@ -106,6 +106,7 @@ export interface YoloDetectRequest {
     youtube_url: string;
     callback_url?: string;
     scene_context?: string;
+    pose_theft_mode?: boolean;
 }
 
 export interface YoloDetectRtspRequest {
@@ -113,6 +114,7 @@ export interface YoloDetectRtspRequest {
     camera_id?: string;
     callback_url?: string;
     scene_context?: string;
+    pose_theft_mode?: boolean;
 }
 
 export interface YoloDetectRtmpRequest {
@@ -120,6 +122,7 @@ export interface YoloDetectRtmpRequest {
     camera_id?: string;
     callback_url?: string;
     scene_context?: string;
+    pose_theft_mode?: boolean;
 }
 
 export interface YoloJobResponse {
