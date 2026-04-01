@@ -1025,9 +1025,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                             <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center bg-[#050505] border border-[#1E2548] shadow-2xl rounded overflow-hidden">
                                 <img
                                     ref={streamImgRef}
-                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
+                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}&t=${Date.now()}`}
                                     alt="Live Camera Feed"
-                                    className="absolute inset-0 w-full h-full object-contain select-none shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                                    className="absolute inset-0 w-full h-full object-contain select-none shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-neutral-900"
                                     onLoad={(e) => {
                                         const t = e.currentTarget;
                                         setVideoNatRes(prev => 
@@ -1037,6 +1037,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         );
                                     }}
                                     onError={(e) => {
+                                        console.error(`[STREAM ERROR] The live video feed failed to load or got disconnected. URL: ${e.currentTarget.src}`);
                                         (e.target as HTMLImageElement).style.display = 'none';
                                         (e.target as HTMLImageElement).nextElementSibling?.nextElementSibling?.classList.remove('hidden');
                                     }}
