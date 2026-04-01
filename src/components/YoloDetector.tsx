@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../api/client';
 import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData, Zone, ZonePoint, ZoneAlert } from '../api/types';
@@ -95,6 +95,77 @@ const SKELETON_EDGES: [number, number, string][] = [
 ];
 const MIN_CONF = 0.3;
 
+const SkeletonOverlay = memo(({ cameraId }: { cameraId: string }) => {
+    const [skeletonData, setSkeletonData] = useState<SkeletonFrame | null>(null);
+    const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        let isActive = true;
+        let src: EventSource | null = null;
+
+        const connect = () => {
+            const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const token = localStorage.getItem('access_token');
+            src = new EventSource(`${API}/api/v1/cameras/${cameraId}/skeleton?token=${token}`);
+            
+            src.onmessage = (e) => {
+                if (!isActive) return;
+                try { setSkeletonData(JSON.parse(e.data)); } catch {}
+            };
+            
+            src.onerror = () => {
+                if (src) src.close();
+                if (isActive) {
+                    retryTimeoutRef.current = setTimeout(connect, 2000);
+                }
+            };
+        };
+
+        connect();
+
+        return () => {
+            isActive = false;
+            if (src) src.close();
+            if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        };
+    }, [cameraId]);
+
+    if (!skeletonData) return null;
+
+    return (
+        <g className="skeleton-container">
+            {skeletonData.persons.map(person => (
+                <g key={`skel-${person.track_id}`}>
+                    {SKELETON_EDGES.map(([from, to, color], ei) => {
+                        const a = person.keypoints[from];
+                        const b = person.keypoints[to];
+                        if (!a || !b || a.conf < MIN_CONF || b.conf < MIN_CONF) return null;
+                        return (
+                            <line
+                                key={`e-${person.track_id}-${ei}`}
+                                x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                                stroke={color} strokeWidth="4" strokeLinecap="round"
+                                opacity="0.85" className="pointer-events-none"
+                            />
+                        );
+                    })}
+                    {person.keypoints.map((kp, ki) => {
+                        if (kp.conf < MIN_CONF) return null;
+                        return (
+                            <circle
+                                key={`j-${person.track_id}-${ki}`}
+                                cx={kp.x} cy={kp.y} r="5"
+                                fill="white" stroke="rgba(0,0,0,0.5)" strokeWidth="1.5"
+                                className="pointer-events-none"
+                            />
+                        );
+                    })}
+                </g>
+            ))}
+        </g>
+    );
+});
+
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     const { poseTheftMode } = useSettings();
     const [jobId, setJobId] = useState<string | null>(null);
@@ -120,54 +191,26 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
     // Skeleton overlay state
     const [skeletonActive, setSkeletonActive] = useState(false);
-    const [skeletonData, setSkeletonData] = useState<SkeletonFrame | null>(null);
-    const skeletonSourceRef = useRef<EventSource | null>(null);
 
     // Logic Engine accordion state
     const [isLogicExpanded, setIsLogicExpanded] = useState(false);
     const [isRawLogsExpanded, setIsRawLogsExpanded] = useState(false);
 
     useEffect(() => {
+        // Enforce cleanup on any camera switch
+        setSkeletonActive(false);
+        setIsDrawingZone(false);
+        setCurrentZonePoints([]);
+        
         if (viewingCameraId) {
             api.getZones(viewingCameraId).then(setZones).catch(console.error);
         } else {
             setZones([]);
-            // Clean up skeleton when closing camera
-            skeletonSourceRef.current?.close();
-            skeletonSourceRef.current = null;
-            setSkeletonData(null);
-            setSkeletonActive(false);
-            setIsDrawingZone(false);
-            setCurrentZonePoints([]);
         }
     }, [viewingCameraId]);
 
-    // Skeleton cleanup on unmount
-    useEffect(() => {
-        return () => { skeletonSourceRef.current?.close(); };
-    }, []);
-
-    const toggleSkeleton = (cameraId: string) => {
-        if (skeletonActive) {
-            skeletonSourceRef.current?.close();
-            skeletonSourceRef.current = null;
-            setSkeletonData(null);
-            setSkeletonActive(false);
-            return;
-        }
-        const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-        const token = localStorage.getItem('access_token');
-        const src = new EventSource(`${API}/api/v1/cameras/${cameraId}/skeleton?token=${token}`);
-        src.onmessage = (e) => {
-            try { setSkeletonData(JSON.parse(e.data)); } catch {}
-        };
-        src.onerror = () => {
-            src.close();
-            skeletonSourceRef.current = null;
-            setSkeletonActive(false);
-        };
-        skeletonSourceRef.current = src;
-        setSkeletonActive(true);
+    const toggleSkeleton = () => {
+        setSkeletonActive(prev => !prev);
     };
 
     const svgCoordsFromEvent = (e: React.MouseEvent<SVGSVGElement>): ZonePoint => {
@@ -920,7 +963,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 )}
                                 <div className="w-px h-6 bg-[#1E2548]" />
                                 <button
-                                    onClick={() => toggleSkeleton(viewingCameraId!)}
+                                    onClick={() => toggleSkeleton()}
                                     className={`px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border ${
                                         skeletonActive
                                             ? 'bg-purple-500/20 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
@@ -1018,34 +1061,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     ))}
 
                                     {/* Skeleton overlay */}
-                                    {skeletonData?.persons.map(person => (
-                                        <g key={`skel-${person.track_id}`}>
-                                            {SKELETON_EDGES.map(([from, to, color], ei) => {
-                                                const a = person.keypoints[from];
-                                                const b = person.keypoints[to];
-                                                if (!a || !b || a.conf < MIN_CONF || b.conf < MIN_CONF) return null;
-                                                return (
-                                                    <line
-                                                        key={`e-${person.track_id}-${ei}`}
-                                                        x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                                                        stroke={color} strokeWidth="4" strokeLinecap="round"
-                                                        opacity="0.85" className="pointer-events-none"
-                                                    />
-                                                );
-                                            })}
-                                            {person.keypoints.map((kp, ki) => {
-                                                if (kp.conf < MIN_CONF) return null;
-                                                return (
-                                                    <circle
-                                                        key={`j-${person.track_id}-${ki}`}
-                                                        cx={kp.x} cy={kp.y} r="5"
-                                                        fill="white" stroke="rgba(0,0,0,0.5)" strokeWidth="1.5"
-                                                        className="pointer-events-none"
-                                                    />
-                                                );
-                                            })}
-                                        </g>
-                                    ))}
+                                    {skeletonActive && viewingCameraId && (
+                                        <SkeletonOverlay cameraId={viewingCameraId} />
+                                    )}
 
                                     {/* Drawing: Ghost polygon preview (points + mouse) */}
                                     {isDrawingZone && currentZonePoints.length > 0 && (
