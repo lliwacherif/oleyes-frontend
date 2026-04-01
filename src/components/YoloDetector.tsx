@@ -561,6 +561,38 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                 {(status === 'running' || status === 'done' || status === 'stopped' || status === 'failed' || status === 'error') && (
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 relative z-10">
+                        {/* REAL-TIME PERSON DETECTION FLAG */}
+                        <AnimatePresence>
+                            {((logicData?.summary_text || '').match(/person|subject|customer|human/i) || (logicData?.scene_text || '').match(/person|subject|customer|human/i) || (logicData?.armed_subjects?.length ?? 0) > 0 || (logicData?.fighting_pairs?.length ?? 0) > 0) && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    className="bg-orange-950/60 border border-orange-500/50 rounded-xl p-4 flex items-center justify-between shadow-[0_0_20px_rgba(249,115,22,0.25)] relative overflow-hidden backdrop-blur-md"
+                                >
+                                    <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(249,115,22,0.03)_25%,transparent_25%,transparent_50%,rgba(249,115,22,0.03)_50%,rgba(249,115,22,0.03)_75%,transparent_75%,transparent_100%)] bg-[length:20px_20px] pointer-events-none" />
+                                    
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center relative shadow-[0_0_15px_rgba(249,115,22,0.4)]">
+                                            <div className="absolute inset-0 rounded-full border border-orange-500 animate-ping opacity-75" />
+                                            <Users className="w-5 h-5 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-orange-500 font-bold font-mono tracking-widest text-[13px] uppercase drop-shadow-[0_0_5px_rgba(249,115,22,0.5)]">
+                                                Person Detected
+                                            </span>
+                                            <span className="text-orange-400/80 font-mono text-[10px] uppercase">
+                                                Active human subject(s) tracked in live feed
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="hidden sm:flex px-3 py-1 bg-orange-500/20 text-orange-400 rounded-sm border border-orange-500/30 font-mono text-xs uppercase animate-[pulse_1.5s_ease-in-out_infinite] relative z-10 shadow-[inner_0_0_10px_rgba(249,115,22,0.2)]">
+                                        LIVE_TRACKING
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         {/* Logic Engine Dashboard */}
                         {logicData && (
                             <div className="bg-[#0A0D2A]/80 rounded-2xl border border-[#1E2548] p-6 shadow-inner">
