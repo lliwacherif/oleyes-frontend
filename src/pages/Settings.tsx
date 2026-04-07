@@ -9,7 +9,7 @@ export function Settings() {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isContextModalOpen, setIsContextModalOpen] = useState(false);
     const [isZonesModalOpen, setIsZonesModalOpen] = useState(false);
-    const { setSceneContext, poseTheftMode, setPoseTheftMode } = useSettings();
+    const { setSceneContext, poseTheftMode, setPoseTheftMode, supremeMode, setSupremeMode } = useSettings();
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -160,7 +160,7 @@ export function Settings() {
 
     const renderInput = (label: string, field: keyof ContextData, placeholder: string = '', type = 'text') => (
         <div className="mb-4">
-            <label className="block text-sm text-neutral-400 mb-1">{label}</label>
+            <label className="block text-sm text-slate-500 dark:text-neutral-400 mb-1">{label}</label>
             <input
                 type={type}
                 value={(contextData[field] as string) || ''}
@@ -208,7 +208,7 @@ export function Settings() {
                             <Lock className="w-6 h-6" />
                         </div>
                         <h3 className="font-bold text-lg text-white mb-2">Change Password</h3>
-                        <p className="text-neutral-400 text-sm">Update your account password to keep your account secure.</p>
+                        <p className="text-slate-500 dark:text-neutral-400 text-sm">Update your account password to keep your account secure.</p>
                     </button>
 
                     {/* Context Card */}
@@ -220,7 +220,7 @@ export function Settings() {
                             <FileText className="w-6 h-6" />
                         </div>
                         <h3 className="font-bold text-lg text-white mb-2">Scene Context</h3>
-                        <p className="text-neutral-400 text-sm">Configure the environment description for the AI engine.</p>
+                        <p className="text-slate-500 dark:text-neutral-400 text-sm">Configure the environment description for the AI engine.</p>
                     </button>
 
                     {/* ROI Zones Card */}
@@ -232,7 +232,7 @@ export function Settings() {
                             <MapPin className="w-6 h-6" />
                         </div>
                         <h3 className="font-bold text-lg text-white mb-2">ROI Zones</h3>
-                        <p className="text-neutral-400 text-sm">View and manage detection zones configured on your cameras.</p>
+                        <p className="text-slate-500 dark:text-neutral-400 text-sm">View and manage detection zones configured on your cameras.</p>
                     </button>
                 </div>
 
@@ -243,7 +243,7 @@ export function Settings() {
                     <div className="flex items-start justify-between bg-black/20 p-5 rounded-xl border border-white/5">
                         <div className="max-w-2xl text-left">
                             <h3 className="text-white font-semibold mb-1">Advanced Theft Mode (Pose AI)</h3>
-                            <p className="text-neutral-400 text-sm leading-relaxed">
+                            <p className="text-slate-500 dark:text-neutral-400 text-sm leading-relaxed">
                                 Switches the AI engine to track skeletal movements (wrists/hips) for extreme accuracy in shoplifting detection. Uses more server resources.
                             </p>
                         </div>
@@ -255,6 +255,22 @@ export function Settings() {
                             <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${poseTheftMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
                         </button>
                     </div>
+
+                    <div className="flex items-start justify-between bg-black/20 p-5 rounded-xl border border-white/5 mt-4">
+                        <div className="max-w-2xl text-left">
+                            <h3 className="text-white font-semibold mb-1">Supreme OLEYES</h3>
+                            <p className="text-slate-500 dark:text-neutral-400 text-sm leading-relaxed">
+                                Activates the Pixtral Vision Language Model for direct visual theft analysis. Instead of text-based AI, the system sends 3-frame video sequences directly to a VLM for visual shoplifting detection. Uses more API resources.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSupremeMode(!supremeMode)}
+                            className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${supremeMode ? 'bg-emerald-500' : 'bg-white/20'}`}
+                        >
+                            <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${supremeMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -264,14 +280,14 @@ export function Settings() {
                     <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-md relative">
                         <button
                             onClick={() => setIsPasswordModalOpen(false)}
-                            className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
                         <h2 className="text-xl font-bold text-white mb-6">Change Password</h2>
                         <form onSubmit={handlePasswordSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm text-neutral-400 mb-1">Current Password</label>
+                                <label className="block text-sm text-slate-500 dark:text-neutral-400 mb-1">Current Password</label>
                                 <input
                                     type="password"
                                     value={currentPassword}
@@ -281,7 +297,7 @@ export function Settings() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-neutral-400 mb-1">New Password</label>
+                                <label className="block text-sm text-slate-500 dark:text-neutral-400 mb-1">New Password</label>
                                 <input
                                     type="password"
                                     value={newPassword}
@@ -291,7 +307,7 @@ export function Settings() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-neutral-400 mb-1">Confirm New Password</label>
+                                <label className="block text-sm text-slate-500 dark:text-neutral-400 mb-1">Confirm New Password</label>
                                 <input
                                     type="password"
                                     value={confirmPassword}
@@ -317,15 +333,15 @@ export function Settings() {
                     <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-xl relative">
                         <button
                             onClick={() => setIsContextModalOpen(false)}
-                            className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
                         <h3 className="font-bold text-lg mb-2 text-white flex items-center gap-2">
                             Scene Context
-                            <span className="text-xs font-normal text-neutral-400 px-2 py-0.5 rounded-full bg-white/10">Optional</span>
+                            <span className="text-xs font-normal text-slate-500 dark:text-neutral-400 px-2 py-0.5 rounded-full bg-white/10">Optional</span>
                         </h3>
-                        <p className="text-sm text-neutral-400 mb-6">
+                        <p className="text-sm text-slate-500 dark:text-neutral-400 mb-6">
                             Configure your business details and security priorities below.
                         </p>
 
@@ -376,7 +392,7 @@ export function Settings() {
 
                                 <div className="border-t border-white/10 mt-6 pt-6">
                                     <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Generated Context</h4>
-                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 text-sm text-neutral-300 leading-relaxed min-h-[80px] max-h-[200px] overflow-y-auto custom-scrollbar whitespace-pre-wrap">
+                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 text-sm text-slate-600 dark:text-neutral-300 leading-relaxed min-h-[80px] max-h-[200px] overflow-y-auto custom-scrollbar whitespace-pre-wrap">
                                         {contextData.context_text || "None"}
                                     </div>
                                 </div>
@@ -402,7 +418,7 @@ export function Settings() {
                     <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl relative">
                         <button
                             onClick={() => setIsZonesModalOpen(false)}
-                            className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -410,14 +426,14 @@ export function Settings() {
                             <MapPin className="w-5 h-5 text-cyan-400" />
                             ROI Zone Management
                         </h2>
-                        <p className="text-sm text-neutral-400 mb-6">All detection zones configured across your cameras.</p>
+                        <p className="text-sm text-slate-500 dark:text-neutral-400 mb-6">All detection zones configured across your cameras.</p>
 
                         {zonesLoading ? (
                             <div className="flex justify-center items-center h-48">
                                 <span className="w-8 h-8 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin"></span>
                             </div>
                         ) : Object.keys(cameraZones).length === 0 ? (
-                            <div className="text-center py-16 text-neutral-500">
+                            <div className="text-center py-16 text-slate-400 dark:text-neutral-500">
                                 <MapPin className="w-10 h-10 mx-auto mb-3 opacity-30" />
                                 <p className="text-sm">No zones configured yet.</p>
                                 <p className="text-xs mt-1">Open a camera's live viewer and click "Draw New Zone" to get started.</p>
@@ -431,7 +447,7 @@ export function Settings() {
                                             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
                                                 <Camera className="w-4 h-4 text-cyan-400" />
                                                 <span className="text-white font-semibold text-sm">{cam?.name || `Camera ${camId.substring(0, 6)}`}</span>
-                                                <span className="text-neutral-500 text-xs ml-auto">{zones.length} zone{zones.length !== 1 ? 's' : ''}</span>
+                                                <span className="text-slate-400 dark:text-neutral-500 text-xs ml-auto">{zones.length} zone{zones.length !== 1 ? 's' : ''}</span>
                                             </div>
                                             <div className="space-y-2">
                                                 {zones.map(zone => (
@@ -440,7 +456,7 @@ export function Settings() {
                                                             <div className="w-4 h-4 rounded-full border-2 border-white/20 flex-shrink-0" style={{ backgroundColor: zone.color }} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="text-white text-sm font-medium truncate">{zone.name}</div>
-                                                                <div className="text-neutral-500 text-xs">
+                                                                <div className="text-slate-400 dark:text-neutral-500 text-xs">
                                                                     {zone.points.length} vertices · {zone.color}
                                                                     {zone.created_at && ` · ${new Date(zone.created_at).toLocaleDateString()}`}
                                                                 </div>

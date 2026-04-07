@@ -83,29 +83,31 @@ export const api = {
     },
 
     // YOLO Vision
-    detectYoutube: async (url: string, sceneContext?: string, poseTheftMode?: boolean): Promise<YoloJobResponse> => {
+    detectYoutube: async (url: string, sceneContext?: string, poseTheftMode?: boolean, supremeMode?: boolean): Promise<YoloJobResponse> => {
         const payload: YoloDetectRequest = {
             youtube_url: url,
             scene_context: sceneContext,
-            pose_theft_mode: poseTheftMode
+            pose_theft_mode: poseTheftMode,
+            supreme_mode: supremeMode
         };
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-youtube', payload);
         return response.data;
     },
 
-    detectRtsp: async (url: string, sceneContext?: string, cameraId?: string, poseTheftMode?: boolean): Promise<YoloJobResponse> => {
+    detectRtsp: async (url: string, sceneContext?: string, cameraId?: string, poseTheftMode?: boolean, supremeMode?: boolean): Promise<YoloJobResponse> => {
         const payload: YoloDetectRtspRequest = {
             rtsp_url: url,
             scene_context: sceneContext,
-            pose_theft_mode: poseTheftMode
+            pose_theft_mode: poseTheftMode,
+            supreme_mode: supremeMode
         };
         if (cameraId) payload.camera_id = cameraId;
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtsp', payload);
         return response.data;
     },
 
-    detectRtmp: async (streamKey: string, sceneContext?: string, cameraId?: string, poseTheftMode?: boolean): Promise<YoloJobResponse> => {
-        const payload: YoloDetectRtmpRequest = { stream_key: streamKey, pose_theft_mode: poseTheftMode };
+    detectRtmp: async (streamKey: string, sceneContext?: string, cameraId?: string, poseTheftMode?: boolean, supremeMode?: boolean): Promise<YoloJobResponse> => {
+        const payload: YoloDetectRtmpRequest = { stream_key: streamKey, pose_theft_mode: poseTheftMode, supreme_mode: supremeMode };
         if (sceneContext) payload.scene_context = sceneContext;
         if (cameraId) payload.camera_id = cameraId;
         const response = await apiClient.post<YoloJobResponse>('/api/v1/vision/detect-rtmp', payload);

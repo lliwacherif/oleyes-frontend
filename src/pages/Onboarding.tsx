@@ -147,7 +147,7 @@ export const Onboarding = () => {
                 onChange={(e) => setter(e.target.value)}
                 className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md appearance-none"
             >
-                <option value="" disabled className="bg-[#1e2548] text-neutral-400">{placeholder}</option>
+                <option value="" disabled className="bg-[#1e2548] text-slate-500 dark:text-neutral-400">{placeholder}</option>
                 {options.map(opt => (
                     <option key={opt} value={opt} className="bg-[#1e2548] text-white">{opt}</option>
                 ))}
@@ -214,7 +214,7 @@ export const Onboarding = () => {
                     <div className="mb-10">
                         <h1 className="text-5xl lg:text-5xl font-light mb-2">Smart AI</h1>
                         <h1 className="text-5xl lg:text-5xl font-light italic text-white/90 mb-5">Surveillance.</h1>
-                        <p className="text-xl lg:text-xl font-light text-neutral-300 italic">Protecting What Matters Most</p>
+                        <p className="text-xl lg:text-xl font-light text-slate-600 dark:text-neutral-300 italic">Protecting What Matters Most</p>
                     </div>
                 </div>
 

@@ -22,11 +22,11 @@ const renderParsedSummary = (text: string) => {
             <div className="space-y-2 mt-2">
                 {lines.map((l, i) => {
                     const match = l.match(/^(T-\d+\.\d+s:)\s*(.*)/);
-                    if (!match) return <div key={i} className="text-[#94A3B8]">{l}</div>;
+                    if (!match) return <div key={i} className="text-slate-600 dark:text-[#94A3B8]">{l}</div>;
                     return (
-                        <div key={i} className="flex flex-col sm:flex-row gap-2 border-l-2 border-[#1E2548] pl-3 py-1 bg-[#121738]/30">
+                        <div key={i} className="flex flex-col sm:flex-row gap-2 border-l-2 border-slate-200 dark:border-[#1E2548] pl-3 py-1 bg-[#121738]/30">
                             <span className="text-cyan-400 shrink-0 font-bold">{match[1]}</span>
-                            <span className="text-[#94A3B8] leading-relaxed">{match[2]}</span>
+                            <span className="text-slate-600 dark:text-[#94A3B8] leading-relaxed">{match[2]}</span>
                         </div>
                     );
                 })}
@@ -50,7 +50,7 @@ const renderParsedSummary = (text: string) => {
     };
 
     if (!timelineMatch && !currStateMatch) {
-        return <div className="whitespace-pre-wrap leading-relaxed pl-2 text-[#94A3B8]">{text}</div>;
+        return <div className="whitespace-pre-wrap leading-relaxed pl-2 text-slate-600 dark:text-[#94A3B8]">{text}</div>;
     }
 
     return (
@@ -167,7 +167,7 @@ const SkeletonOverlay = memo(({ cameraId }: { cameraId: string }) => {
 });
 
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
-    const { poseTheftMode } = useSettings();
+    const { poseTheftMode, supremeMode } = useSettings();
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [logicData, setLogicData] = useState<LogicOutput | null>(null);
@@ -319,7 +319,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
         try {
             const cleanUrl = targetUrl.trim();
-            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId, poseTheftMode);
+            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId, poseTheftMode, supremeMode);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -354,7 +354,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         try {
             const parts = streamKey.split('/');
             const cleanKey = parts[parts.length - 1].trim();
-            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId, poseTheftMode);
+            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId, poseTheftMode, supremeMode);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -461,7 +461,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     }, [jobId]);
 
     return (
-        <div className="bg-[#0A0D2A]/60 p-6 rounded-2xl border border-[#1E2548] backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col h-full relative group">
+        <div className="bg-white/60 dark:bg-[#0A0D2A]/60 p-6 rounded-2xl border border-slate-200 dark:border-[#1E2548] backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col h-full relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent opacity-100 pointer-events-none rounded-2xl" />
 
             <div className="mb-8 relative z-10">
@@ -469,26 +469,26 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                     <Search className="text-cyan-400 w-6 h-6" />
                     VISION INTERFACE
                 </h2>
-                <div className="text-[10px] font-mono text-[#64748B] tracking-[0.15em] mt-3 uppercase">
+                <div className="text-[10px] font-mono text-slate-500 dark:text-[#64748B] tracking-[0.15em] mt-3 uppercase">
                     [ MODULE : OBJECT_DETECTION_ENGINE ]
                 </div>
             </div>
 
             {/* Active Cameras Section */}
             {activeCameras.length > 0 && (
-                <div className="mb-6 relative z-10 bg-[#060818]/80 border border-[#1E2548] rounded-[8px] p-4 shadow-inner overflow-hidden">
-                    <h3 className="text-[#94A3B8] font-mono text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
+                <div className="mb-6 relative z-10 bg-slate-50/80 dark:bg-[#060818]/80 border border-slate-200 dark:border-[#1E2548] rounded-[8px] p-4 shadow-inner overflow-hidden">
+                    <h3 className="text-slate-600 dark:text-[#94A3B8] font-mono text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.8)]" />
                         ACTIVE CAMERAS
                     </h3>
                     <div className="space-y-3 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
                         {activeCameras.map(cam => (
-                            <div key={cam.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#0A0D2A]/50 border border-[#1E2548]/50 rounded text-[11px] font-mono hover:border-[#10B981]/30 transition-colors group">
+                            <div key={cam.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white/50 dark:bg-[#0A0D2A]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-[11px] font-mono hover:border-[#10B981]/30 transition-colors group">
                                 <div className="flex items-center gap-3">
                                     <Video className="w-4 h-4 text-[#10B981]" />
                                     <div>
                                         <div className="text-white font-bold">{cam.name}</div>
-                                        <div className="text-[#64748B] truncate max-w-[200px] sm:max-w-[300px]">
+                                        <div className="text-slate-500 dark:text-[#64748B] truncate max-w-[200px] sm:max-w-[300px]">
                                             {cam.stream_protocol === 'RTMP'
                                                 ? `RTMP: ${cam.stream_key}`
                                                 : cam.rtsp_url}
@@ -528,9 +528,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
             {/* Status Indicator */}
             {(status === 'running' || status === 'done' || status === 'stopped' || status === 'failed' || status === 'error') && (
-                <div className="flex items-center gap-3 mb-8 bg-[#1E2548]/30 border border-[#1E2548] rounded px-3 py-1.5 self-start relative z-10 w-full sm:w-auto">
+                <div className="flex items-center gap-3 mb-8 bg-slate-200/30 dark:bg-[#1E2548]/30 border border-slate-200 dark:border-[#1E2548] rounded px-3 py-1.5 self-start relative z-10 w-full sm:w-auto">
                     <div className="flex items-center gap-3">
-                        <span className="text-[#64748B] font-mono text-[10px] uppercase tracking-widest pl-1 hidden sm:inline">SYS_STATUS //</span>
+                        <span className="text-slate-500 dark:text-[#64748B] font-mono text-[10px] uppercase tracking-widest pl-1 hidden sm:inline">SYS_STATUS //</span>
                         <span className={`text-[10px] font-mono font-bold tracking-widest uppercase px-2 py-0.5 rounded-sm ${status === 'running' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20'}`}>
                             [ {status === 'running' ? 'PROCESSING' : status} ]
                         </span>
@@ -595,17 +595,17 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                         {/* Logic Engine Dashboard */}
                         {logicData && (
-                            <div className="bg-[#0A0D2A]/80 rounded-2xl border border-[#1E2548] p-6 shadow-inner">
+                            <div className="bg-white/80 dark:bg-[#0A0D2A]/80 rounded-2xl border border-slate-200 dark:border-[#1E2548] p-6 shadow-inner">
 
                                 {/* Situation Classification (Moved to Top) */}
                                 {llmAnalysis && (
                                     <div className="mb-6 bg-[#0A0A0B] rounded-sm p-4 border border-[#2A2A35] flex flex-col justify-center shadow-inner">
-                                        <h4 className="text-neutral-400 font-mono text-xs tracking-widest mb-4 flex items-center justify-center gap-2 uppercase border-b border-[#2A2A35] pb-2 text-center">
+                                        <h4 className="text-slate-500 dark:text-neutral-400 font-mono text-xs tracking-widest mb-4 flex items-center justify-center gap-2 uppercase border-b border-[#2A2A35] pb-2 text-center">
                                             <Activity className="w-4 h-4 text-cyan-500" /> SITUATION_STATUS <Activity className="w-4 h-4 text-cyan-500" />
                                         </h4>
 
                                         {(() => {
-                                            let analysisData = { risk_score: 0, risk_level: 'UNKNOWN', label: 'Analyzing...', explanation: '' };
+                                            let analysisData: { risk_score: number; risk_level: string; label: string; explanation: string; mode?: string; confidence_score?: number; theft_detected?: boolean } = { risk_score: 0, risk_level: 'UNKNOWN', label: 'Analyzing...', explanation: '' };
 
                                             if (typeof llmAnalysis === 'string') {
                                                 // Handle partial JSON streams token-by-token
@@ -649,9 +649,9 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                     };
 
                                                 return {
-                                                    border: 'border-[#2A2A35] text-neutral-400',
+                                                    border: 'border-[#2A2A35] text-slate-500 dark:text-neutral-400',
                                                     bg: 'bg-[#0A0A0B]',
-                                                    accent: 'text-neutral-500'
+                                                    accent: 'text-slate-400 dark:text-neutral-500'
                                                 };
                                             };
 
@@ -662,7 +662,22 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                     {analysisData.risk_level === 'LOW' && (
                                                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(16,185,129,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] pointer-events-none" />
                                                     )}
-                                                    <div className="text-xs font-mono opacity-80 uppercase tracking-widest relative z-10 w-full flex justify-between px-4">
+
+                                                    {/* SUPREME MODE BADGE AND STATS */}
+                                                    {analysisData.mode === 'supreme' && (
+                                                        <div className="absolute top-2 right-2 flex items-center gap-2">
+                                                            {analysisData.confidence_score !== undefined && (
+                                                                <span className="text-[10px] font-mono bg-black/40 px-2 py-1 rounded border border-purple-500/30 text-purple-400">
+                                                                    CONF: {analysisData.confidence_score}%
+                                                                </span>
+                                                            )}
+                                                            <span className="text-[10px] font-bold font-mono bg-purple-500 text-white px-2 py-1 rounded shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                                                                VLM
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="text-xs font-mono opacity-80 uppercase tracking-widest relative z-10 w-full flex justify-between px-4 mt-2">
                                                         <span>DEFCON</span>
                                                         <span className={style.accent}>LV_{analysisData.risk_score}</span>
                                                     </div>
@@ -671,7 +686,14 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                         [ {analysisData.risk_level} RISK ]
                                                     </div>
 
-                                                    {poseTheftMode && analysisData.explanation && (
+                                                    {/* Theft Detected Indicator */}
+                                                    {analysisData.mode === 'supreme' && analysisData.theft_detected !== undefined && (
+                                                        <div className={`text-xs font-mono font-bold px-4 py-1.5 rounded-sm relative z-10 flex items-center gap-2 uppercase tracking-wide border mt-2 ${analysisData.theft_detected ? 'bg-red-950/60 border-red-500/50 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-emerald-950/60 border-emerald-500/50 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]'}`}>
+                                                            {analysisData.theft_detected ? '⚠️ THEFT DETECTED' : '✅ NO THEFT DETECTED'}
+                                                        </div>
+                                                    )}
+
+                                                    {(poseTheftMode || analysisData.mode === 'supreme') && analysisData.explanation && (
                                                         <div className="mt-5 pt-5 border-t border-[#2A2A35] text-xs font-mono opacity-90 relative z-10 text-left w-full max-w-2xl mx-auto">
                                                             <span className="opacity-50 tracking-widest uppercase block mb-2 text-[#06B6D4]">TACTICAL ANALYSIS:</span>
                                                             <div className="whitespace-pre-wrap leading-relaxed">{analysisData.explanation}</div>
@@ -704,7 +726,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         )}
                                     </AnimatePresence>
 
-                                    {!poseTheftMode && (
+                                    {!poseTheftMode && !supremeMode && (
                                         <>
                                             <button 
                                                 onClick={() => setIsLogicExpanded(!isLogicExpanded)}
@@ -727,21 +749,21 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                 exit={{ height: 0, opacity: 0 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="bg-[#0A0D2A]/40 border border-[#1E2548] rounded-[8px] p-5 font-mono text-[10px] relative shadow-inner mb-6">
+                                                <div className="bg-white/40 dark:bg-[#0A0D2A]/40 border border-slate-200 dark:border-[#1E2548] rounded-[8px] p-5 font-mono text-[10px] relative shadow-inner mb-6">
                                                     <div className="text-[#06B6D4] font-bold mb-3 tracking-widest">[ SYS.LOGIC_SUMMARY ]</div>
-                                                    <div className="text-neutral-500 mb-2">&gt;</div>
-                                                    <div className="text-[#94A3B8] leading-relaxed pt-2">
+                                                    <div className="text-slate-400 dark:text-neutral-500 mb-2">&gt;</div>
+                                                    <div className="text-slate-600 dark:text-[#94A3B8] leading-relaxed pt-2">
                                                         {logicData.summary_text ? renderParsedSummary(logicData.summary_text) : null}
 
                                                         {logicData.scene_text && logicData.scene_text !== logicData.summary_text && (
-                                                            <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-[#1E2548]/50" : ""}>
+                                                            <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-slate-200/50 dark:border-[#1E2548]/50" : ""}>
                                                                 {(() => {
                                                                     const isParsed = logicData.scene_text.includes('EVENTS:') || logicData.scene_text.includes('TIMELINE');
                                                                     if (isParsed) {
                                                                         return renderParsedSummary(logicData.scene_text);
                                                                     } else {
                                                                         return (
-                                                                            <div className="text-[#64748B]">
+                                                                            <div className="text-slate-500 dark:text-[#64748B]">
                                                                                 <span className="text-[#06B6D4] font-bold mb-1 block">SCENE_CONTEXT:</span>
                                                                                 {logicData.scene_text}
                                                                             </div>
@@ -760,11 +782,11 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 </div>
 
                                 {/* Tactical Assessment */}
-                                {!poseTheftMode && llmAnalysis && (
-                                    <div className="mb-6 bg-[#0A0D2A]/40 border border-[#1E2548] rounded-[8px] p-5 shadow-inner">
-                                        <div className="flex items-center justify-between mb-4 border-b border-[#1E2548] pb-4">
+                                {!poseTheftMode && !supremeMode && llmAnalysis && (
+                                    <div className="mb-6 bg-white/40 dark:bg-[#0A0D2A]/40 border border-slate-200 dark:border-[#1E2548] rounded-[8px] p-5 shadow-inner">
+                                        <div className="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-[#1E2548] pb-4">
                                             <h4 className="text-[#10B981] font-bold text-[11px] tracking-widest flex items-center gap-2 uppercase">
-                                                <span className="text-neutral-500">&gt;_</span> TACTICAL ASSESSMENT <span className="text-neutral-500 ml-2">[JSON_OUT]</span>
+                                                <span className="text-slate-400 dark:text-neutral-500">&gt;_</span> TACTICAL ASSESSMENT <span className="text-slate-400 dark:text-neutral-500 ml-2">[JSON_OUT]</span>
                                             </h4>
                                             <div className="flex items-center gap-2 px-2 py-0.5 rounded-sm bg-[#06B6D4]/10 border border-[#06B6D4]/20">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#06B6D4] shadow-[0_0_5px_rgba(6,182,212,0.8)]" />
@@ -774,7 +796,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                             </div>
                                         </div>
 
-                                        <div className="font-mono text-[10px] leading-relaxed text-[#94A3B8] whitespace-pre-wrap pl-2 uppercase">
+                                        <div className="font-mono text-[10px] leading-relaxed text-slate-600 dark:text-[#94A3B8] whitespace-pre-wrap pl-2 uppercase">
                                             &gt; {typeof llmAnalysis === 'string' ? (
                                                 <ReactMarkdown
                                                     components={{
@@ -793,7 +815,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 )}
 
                                 {/* Critical Events Grid */}
-                                {!poseTheftMode && (logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
+                                {!poseTheftMode && !supremeMode && (logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
                                     <div className="bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)] mb-4">
                                         <h4 className="text-red-400 font-mono text-xs tracking-widest mb-3 flex items-center gap-2 uppercase">
                                             <Activity className="w-4 h-4" /> [CRITICAL_EVENTS_DETECTED]
@@ -816,14 +838,14 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                         )}
 
                         {/* Bottom Side-by-Side Grid: Batch Log & Tracked Entities */}
-                        {!poseTheftMode && (
+                        {!poseTheftMode && !supremeMode && (
                         <>
                             <div className="mt-8 mb-4">
                                 <button
                                 onClick={() => setIsRawLogsExpanded(!isRawLogsExpanded)}
                                 className="w-full flex items-center justify-between group focus:outline-none"
                             >
-                                <h3 className="text-[14px] font-bold tracking-widest flex items-center gap-2 text-neutral-400 uppercase transition-colors group-hover:text-[#A855F7]">
+                                <h3 className="text-[14px] font-bold tracking-widest flex items-center gap-2 text-slate-500 dark:text-neutral-400 uppercase transition-colors group-hover:text-[#A855F7]">
                                     <Activity className="w-4 h-4" />
                                     RAW ENGINE LOGS & ENTITIES
                                 </h3>
@@ -846,20 +868,20 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                             {/* Detailed Batch Processing Log (Left/Main, Col-Span 2) */}
                             <div className="lg:col-span-2 flex flex-col h-full">
                                 {currentBatch.length > 0 ? (
-                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] shadow-inner overflow-hidden flex flex-col flex-1 max-h-[300px]">
-                                        <div className="border-b border-[#1E2548] px-5 py-4 flex items-center justify-between shrink-0 bg-[#060818]/60">
-                                            <h3 className="text-[#94A3B8] font-bold text-[11px] tracking-widest flex items-center gap-2 uppercase">
-                                                <span className="text-neutral-500">&gt;_</span> PROCESSING BATCH LOG
+                                    <div className="bg-white/40 dark:bg-[#0A0D2A]/40 rounded-[8px] border border-slate-200 dark:border-[#1E2548] shadow-inner overflow-hidden flex flex-col flex-1 max-h-[300px]">
+                                        <div className="border-b border-slate-200 dark:border-[#1E2548] px-5 py-4 flex items-center justify-between shrink-0 bg-slate-50/60 dark:bg-[#060818]/60">
+                                            <h3 className="text-slate-600 dark:text-[#94A3B8] font-bold text-[11px] tracking-widest flex items-center gap-2 uppercase">
+                                                <span className="text-slate-400 dark:text-neutral-500">&gt;_</span> PROCESSING BATCH LOG
                                             </h3>
-                                            <span className="text-[10px] font-mono text-[#64748B] bg-[#1E2548]/50 px-2 py-0.5 rounded-sm tracking-widest uppercase">
+                                            <span className="text-[10px] font-mono text-slate-500 dark:text-[#64748B] bg-slate-200/50 dark:bg-[#1E2548]/50 px-2 py-0.5 rounded-sm tracking-widest uppercase">
                                                 BUFFER: {currentBatch.length}
                                             </span>
                                         </div>
 
                                         <div className="p-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
                                             {currentBatch.map((frame, i) => (
-                                                <div key={i} className="flex gap-4 pb-2 font-mono text-[9px] uppercase leading-relaxed border-b border-[#1E2548]/30 last:border-0 last:pb-0">
-                                                    <span className="text-[#64748B] shrink-0 select-none bg-black/40 px-1 rounded h-max py-0.5">
+                                                <div key={i} className="flex gap-4 pb-2 font-mono text-[9px] uppercase leading-relaxed border-b border-slate-200/30 dark:border-[#1E2548]/30 last:border-0 last:pb-0">
+                                                    <span className="text-slate-500 dark:text-[#64748B] shrink-0 select-none bg-black/40 px-1 rounded h-max py-0.5">
                                                         [{String(frame.frame_index).padStart(5, '0')}]
                                                     </span>
                                                     <span className="text-[#10B981] break-words flex-1">
@@ -870,7 +892,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] flex items-center justify-center flex-1 min-h-[150px] text-[#64748B] text-xs font-mono tracking-widest uppercase">
+                                    <div className="bg-white/40 dark:bg-[#0A0D2A]/40 rounded-[8px] border border-slate-200 dark:border-[#1E2548] flex items-center justify-center flex-1 min-h-[150px] text-slate-500 dark:text-[#64748B] text-xs font-mono tracking-widest uppercase">
                                         INITIALIZING CAMERA BATCHES...
                                     </div>
                                 )}
@@ -879,8 +901,8 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                             {/* Tracked Entities (Right, Col-Span 1) */}
                             <div className="lg:col-span-1 flex flex-col h-full">
                                 {((logicData?.objects?.length ?? 0) > 0) ? (
-                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] shadow-inner flex flex-col flex-1 max-h-[300px]">
-                                        <div className="px-4 py-4 shrink-0 border-b border-[#1E2548] bg-[#060818]/60 flex justify-between items-center">
+                                    <div className="bg-white/40 dark:bg-[#0A0D2A]/40 rounded-[8px] border border-slate-200 dark:border-[#1E2548] shadow-inner flex flex-col flex-1 max-h-[300px]">
+                                        <div className="px-4 py-4 shrink-0 border-b border-slate-200 dark:border-[#1E2548] bg-slate-50/60 dark:bg-[#060818]/60 flex justify-between items-center">
                                             <div className="flex items-center gap-2 text-white font-bold text-[10px] tracking-widest uppercase">
                                                 <Users className="w-3.5 h-3.5 text-[#A855F7]" /> [ ENTITIES ]
                                             </div>
@@ -890,7 +912,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         </div>
 
                                         {/* Tabular Header */}
-                                        <div className="grid grid-cols-12 text-[8px] font-bold text-neutral-500 uppercase px-3 pt-3 pb-2 shrink-0 tracking-widest border-b border-[#1E2548]/50">
+                                        <div className="grid grid-cols-12 text-[8px] font-bold text-slate-400 dark:text-neutral-500 uppercase px-3 pt-3 pb-2 shrink-0 tracking-widest border-b border-slate-200/50 dark:border-[#1E2548]/50">
                                             <div className="col-span-6">ID(ZONE)</div>
                                             <div className="col-span-3 text-center">VEL</div>
                                             <div className="col-span-3 text-right">DWELL</div>
@@ -898,10 +920,10 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
                                         <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar px-3 py-2">
                                             {(logicData?.objects || []).map((obj: any) => (
-                                                <div key={obj.track_id} className="grid grid-cols-12 text-[10px] font-mono items-center transition-all group/row font-semibold bg-[#121738]/30 hover:bg-[#121738]/60 p-1.5 rounded border border-[#1E2548]/30">
+                                                <div key={obj.track_id} className="grid grid-cols-12 text-[10px] font-mono items-center transition-all group/row font-semibold bg-[#121738]/30 hover:bg-[#121738]/60 p-1.5 rounded border border-slate-200/30 dark:border-[#1E2548]/30">
                                                     <div className="col-span-6 flex items-center gap-1.5 tracking-wider truncate pr-1">
                                                         <span className="text-white">#{obj.track_id}</span>
-                                                        <span className="text-[#64748B] text-[8px] truncate">({obj.zone || '-'})</span>
+                                                        <span className="text-slate-500 dark:text-[#64748B] text-[8px] truncate">({obj.zone || '-'})</span>
                                                     </div>
                                                     <div className="col-span-3 text-[#06B6D4] text-center">
                                                         {obj.speed.toFixed(1)}
@@ -914,7 +936,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-[#0A0D2A]/40 rounded-[8px] border border-[#1E2548] flex items-center justify-center flex-1 min-h-[150px] text-[#64748B] text-[10px] text-center px-4 font-mono tracking-widest uppercase">
+                                    <div className="bg-white/40 dark:bg-[#0A0D2A]/40 rounded-[8px] border border-slate-200 dark:border-[#1E2548] flex items-center justify-center flex-1 min-h-[150px] text-slate-500 dark:text-[#64748B] text-[10px] text-center px-4 font-mono tracking-widest uppercase">
                                         NO ACTIVE TRACKED ENTITIES
                                     </div>
                                 )}
@@ -946,13 +968,13 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="relative w-full h-full max-w-[1500px] max-h-[900px] z-[101] bg-[#0A0D2A]/95 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col rounded-xl border border-[#1E2548] pointer-events-auto overflow-hidden border-cyan-500/50"
+                            className="relative w-full h-full max-w-[1500px] max-h-[900px] z-[101] bg-white/95 dark:bg-[#0A0D2A]/95 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col rounded-xl border border-slate-200 dark:border-[#1E2548] pointer-events-auto overflow-hidden border-cyan-500/50"
                             onClick={(e) => e.stopPropagation()}
                         >
                         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 to-[#10B981] z-50 pointer-events-none" />
 
                         {/* Header */}
-                        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-[#1E2548] bg-[#060818]/90 z-40 relative shadow-md gap-3">
+                        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-slate-200 dark:border-[#1E2548] bg-slate-50/90 dark:bg-[#060818]/90 z-40 relative shadow-md gap-3">
                             <h3 className="text-white font-mono font-bold tracking-widest flex items-center gap-2 text-[12px]">
                                 <Video className="w-4 h-4 text-cyan-400 animate-pulse" />
                                 [ CAM_{viewingCameraId.substring(0, 4)} ] - REGION OF INTEREST (ROI) ZONE CONFIG
@@ -980,7 +1002,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         </button>
                                         <button
                                             onClick={() => { setIsDrawingZone(false); setCurrentZonePoints([]); setMousePos(null); }}
-                                            className="text-neutral-400 px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all bg-neutral-500/10 border border-neutral-500/30 hover:bg-neutral-500/20"
+                                            className="text-slate-500 dark:text-neutral-400 px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all bg-neutral-500/10 border border-neutral-500/30 hover:bg-neutral-500/20"
                                         >
                                             CANCEL
                                         </button>
@@ -993,7 +1015,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         </button>
                                     </>
                                 )}
-                                <div className="w-px h-6 bg-[#1E2548]" />
+                                <div className="w-px h-6 bg-slate-200 dark:bg-[#1E2548]" />
                                 <button
                                     onClick={() => toggleSkeleton()}
                                     className={`px-3 py-2 rounded flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest uppercase transition-all border ${
@@ -1004,7 +1026,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 >
                                     {skeletonActive ? 'SKELETON ON' : 'SKELETON'}
                                 </button>
-                                <div className="w-px h-6 bg-[#1E2548]" />
+                                <div className="w-px h-6 bg-slate-200 dark:bg-[#1E2548]" />
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -1022,7 +1044,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                         {/* Video / SVG Container */}
                         <div className="flex-1 bg-black/95 relative flex items-center justify-center overflow-hidden w-full h-full p-4 sm:p-8">
                             {/* Inner flex box bounded by parent padding */}
-                            <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center bg-[#050505] border border-[#1E2548] shadow-2xl rounded overflow-hidden">
+                            <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center bg-[#050505] border border-slate-200 dark:border-[#1E2548] shadow-2xl rounded overflow-hidden">
                                 <img
                                     ref={streamImgRef}
                                     src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${viewingCameraId}/live?token=${localStorage.getItem('access_token')}`}
@@ -1222,7 +1244,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                     </div>
                                 )}
 
-                                <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-[#64748B] font-mono text-sm text-center px-4 z-20">
+                                <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-500 dark:text-[#64748B] font-mono text-sm text-center px-4 z-20">
                                     <AlertCircle className="w-6 h-6 text-red-500/50 mb-2" />
                                     <span className="text-[12px]">CONNECTION FAILED OR STREAM OFFLINE</span>
                                 </div>

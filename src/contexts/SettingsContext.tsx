@@ -7,6 +7,8 @@ interface SettingsContextType {
     setSceneContext: (context: string) => void;
     poseTheftMode: boolean;
     setPoseTheftMode: (mode: boolean) => void;
+    supremeMode: boolean;
+    setSupremeMode: (mode: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -14,6 +16,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export function SettingsProvider({ children }: { children: ReactNode }) {
     const [sceneContext, setSceneContext] = useState(localStorage.getItem('sceneContext') || '');
     const [poseTheftMode, setPoseTheftModeState] = useState(localStorage.getItem('poseTheftMode') === 'true');
+    const [supremeMode, setSupremeModeState] = useState(localStorage.getItem('supremeMode') === 'true');
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -41,10 +44,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const setPoseTheftMode = (value: boolean) => {
         setPoseTheftModeState(value);
         localStorage.setItem('poseTheftMode', String(value));
+        if (value) {
+            setSupremeModeState(false);
+            localStorage.setItem('supremeMode', 'false');
+        }
+    };
+
+    const setSupremeMode = (value: boolean) => {
+        setSupremeModeState(value);
+        localStorage.setItem('supremeMode', String(value));
+        if (value) {
+            setPoseTheftModeState(false);
+            localStorage.setItem('poseTheftMode', 'false');
+        }
     };
 
     return (
-        <SettingsContext.Provider value={{ sceneContext, setSceneContext: handleSetSceneContext, poseTheftMode, setPoseTheftMode }}>
+        <SettingsContext.Provider value={{ sceneContext, setSceneContext: handleSetSceneContext, poseTheftMode, setPoseTheftMode, supremeMode, setSupremeMode }}>
             {children}
         </SettingsContext.Provider>
     );

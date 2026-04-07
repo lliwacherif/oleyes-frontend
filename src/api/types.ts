@@ -107,6 +107,7 @@ export interface YoloDetectRequest {
     callback_url?: string;
     scene_context?: string;
     pose_theft_mode?: boolean;
+    supreme_mode?: boolean;
 }
 
 export interface YoloDetectRtspRequest {
@@ -115,6 +116,7 @@ export interface YoloDetectRtspRequest {
     callback_url?: string;
     scene_context?: string;
     pose_theft_mode?: boolean;
+    supreme_mode?: boolean;
 }
 
 export interface YoloDetectRtmpRequest {
@@ -123,6 +125,7 @@ export interface YoloDetectRtmpRequest {
     callback_url?: string;
     scene_context?: string;
     pose_theft_mode?: boolean;
+    supreme_mode?: boolean;
 }
 
 export interface YoloJobResponse {
@@ -204,5 +207,9 @@ export interface YoloStreamMessage {
         label: string;
         explanation: string;
         text?: string; // fallback in case the backend still sends raw text
+        risk_score_raw?: number;
+        theft_detected?: boolean;
+        confidence_score?: number;
+        mode?: string;
     };
 }

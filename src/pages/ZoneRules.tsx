@@ -93,7 +93,7 @@ export function ZoneRules() {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-white">ROI Zone Rules</h1>
-                        <p className="text-neutral-500 text-sm">Configure detection instructions for each zone. These rules are injected into the AI engine during analysis.</p>
+                        <p className="text-slate-400 dark:text-neutral-500 text-sm">Configure detection instructions for each zone. These rules are injected into the AI engine during analysis.</p>
                     </div>
                 </div>
 
@@ -110,7 +110,7 @@ export function ZoneRules() {
                 ) : totalZones === 0 ? (
                     <div className="text-center py-24 border border-white/5 rounded-2xl bg-white/[0.02]">
                         <MapPin className="w-12 h-12 mx-auto mb-4 text-neutral-700" />
-                        <p className="text-neutral-400 text-sm mb-1">No zones configured yet</p>
+                        <p className="text-slate-500 dark:text-neutral-400 text-sm mb-1">No zones configured yet</p>
                         <p className="text-neutral-600 text-xs">Open a camera's live viewer from the dashboard and draw zones to get started.</p>
                     </div>
                 ) : (
@@ -157,7 +157,7 @@ export function ZoneRules() {
                                                         placeholder="e.g. Alert if any person enters this area after hours. Raise risk to HIGH immediately."
                                                         value={localInstructions[zone.id] || ''}
                                                         onChange={(e) => setLocalInstructions(prev => ({ ...prev, [zone.id]: e.target.value }))}
-                                                        className="w-full bg-[#0A0D2A] border border-[#1E2548] rounded-lg p-3 text-[12px] font-mono text-[#94A3B8] resize-none h-20 focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-neutral-700"
+                                                        className="w-full bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] rounded-lg p-3 text-[12px] font-mono text-slate-600 dark:text-[#94A3B8] resize-none h-20 focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-neutral-700"
                                                         maxLength={500}
                                                     />
                                                     <div className="flex items-center justify-between mt-2">

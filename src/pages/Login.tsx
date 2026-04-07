@@ -46,7 +46,7 @@ export const Login = () => {
                     <div className="mb-20">
                         <h1 className="text-5xl lg:text-6xl font-light mb-2">Smart AI</h1>
                         <h1 className="text-5xl lg:text-6xl font-light italic text-white/90 mb-6">Surveillance.</h1>
-                        <p className="text-xl lg:text-2xl font-light text-neutral-300 italic">Protecting What Matters Most</p>
+                        <p className="text-xl lg:text-2xl font-light text-slate-600 dark:text-neutral-300 italic">Protecting What Matters Most</p>
                     </div>
                 </div>
 

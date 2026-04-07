@@ -2,7 +2,7 @@ import React from 'react';
 import { LogOut, Settings as SettingsIcon, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import Logo from '../assets/Logo-oleyes-holding-2.png';
+import Logo from '../assets/Logo-oleyes-icon.png';
 
 
 interface LayoutProps {
