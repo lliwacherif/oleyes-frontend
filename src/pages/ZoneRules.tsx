@@ -92,14 +92,14 @@ export function ZoneRules() {
                         <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">ROI Zone Rules</h1>
+                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">ROI Zone Rules</h1>
                         <p className="text-slate-400 dark:text-neutral-500 text-sm">Configure detection instructions for each zone. These rules are injected into the AI engine during analysis.</p>
                     </div>
                 </div>
 
-                <div className="mt-1 mb-8 flex items-center gap-3 text-[10px] font-mono tracking-widest uppercase text-neutral-600">
+                <div className="mt-1 mb-8 flex items-center gap-3 text-[10px] font-mono tracking-widest uppercase text-slate-400 dark:text-neutral-600">
                     <span>{cameras.length} CAMERA{cameras.length !== 1 ? 'S' : ''}</span>
-                    <span className="text-neutral-700">·</span>
+                    <span className="text-slate-400 dark:text-neutral-700">·</span>
                     <span>{totalZones} ZONE{totalZones !== 1 ? 'S' : ''} CONFIGURED</span>
                 </div>
 
@@ -108,35 +108,35 @@ export function ZoneRules() {
                         <span className="w-8 h-8 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin"></span>
                     </div>
                 ) : totalZones === 0 ? (
-                    <div className="text-center py-24 border border-white/5 rounded-2xl bg-white/[0.02]">
-                        <MapPin className="w-12 h-12 mx-auto mb-4 text-neutral-700" />
+                    <div className="text-center py-24 border border-slate-100 dark:border-white/5 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02]">
+                        <MapPin className="w-12 h-12 mx-auto mb-4 text-slate-400 dark:text-neutral-700" />
                         <p className="text-slate-500 dark:text-neutral-400 text-sm mb-1">No zones configured yet</p>
-                        <p className="text-neutral-600 text-xs">Open a camera's live viewer from the dashboard and draw zones to get started.</p>
+                        <p className="text-slate-400 dark:text-neutral-600 text-xs">Open a camera's live viewer from the dashboard and draw zones to get started.</p>
                     </div>
                 ) : (
                     <div className="space-y-8">
                         {Object.entries(cameraZones).map(([camId, zones]) => {
                             const cam = cameras.find(c => c.id === camId);
                             return (
-                                <div key={camId} className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
+                                <div key={camId} className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden">
                                     {/* Camera header */}
-                                    <div className="flex items-center gap-3 px-5 py-4 bg-white/[0.03] border-b border-white/5">
+                                    <div className="flex items-center gap-3 px-5 py-4 bg-slate-100/50 dark:bg-white/[0.03] border-b border-slate-100 dark:border-white/5">
                                         <Camera className="w-4 h-4 text-cyan-400" />
-                                        <span className="text-white font-semibold text-sm">{cam?.name || `Camera ${camId.substring(0, 8)}`}</span>
-                                        <span className="ml-auto text-neutral-600 text-xs font-mono">{zones.length} zone{zones.length !== 1 ? 's' : ''}</span>
+                                        <span className="text-neutral-900 dark:text-white font-semibold text-sm">{cam?.name || `Camera ${camId.substring(0, 8)}`}</span>
+                                        <span className="ml-auto text-slate-400 dark:text-neutral-600 text-xs font-mono">{zones.length} zone{zones.length !== 1 ? 's' : ''}</span>
                                     </div>
 
                                     {/* Zones */}
-                                    <div className="divide-y divide-white/5">
+                                    <div className="divide-y divide-slate-100 dark:divide-white/5">
                                         {zones.map(zone => (
                                             <div key={zone.id} className="px-5 py-4 group">
                                                 {/* Zone info row */}
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 flex-shrink-0" style={{ backgroundColor: zone.color }} />
+                                                    <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300 dark:border-white/20 flex-shrink-0" style={{ backgroundColor: zone.color }} />
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="text-white text-sm font-medium">{zone.name}</span>
-                                                        <span className="text-neutral-600 text-xs ml-2">{zone.points.length} pts</span>
-                                                        {zone.created_at && <span className="text-neutral-700 text-xs ml-2">· {new Date(zone.created_at).toLocaleDateString()}</span>}
+                                                        <span className="text-neutral-900 dark:text-white text-sm font-medium">{zone.name}</span>
+                                                        <span className="text-slate-400 dark:text-neutral-600 text-xs ml-2">{zone.points.length} pts</span>
+                                                        {zone.created_at && <span className="text-slate-400 dark:text-neutral-700 text-xs ml-2">· {new Date(zone.created_at).toLocaleDateString()}</span>}
                                                     </div>
                                                     <button
                                                         onClick={() => handleDeleteZone(zone.id, camId)}
@@ -157,11 +157,11 @@ export function ZoneRules() {
                                                         placeholder="e.g. Alert if any person enters this area after hours. Raise risk to HIGH immediately."
                                                         value={localInstructions[zone.id] || ''}
                                                         onChange={(e) => setLocalInstructions(prev => ({ ...prev, [zone.id]: e.target.value }))}
-                                                        className="w-full bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] rounded-lg p-3 text-[12px] font-mono text-slate-600 dark:text-[#94A3B8] resize-none h-20 focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-neutral-700"
+                                                        className="w-full bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] rounded-lg p-3 text-[12px] font-mono text-slate-600 dark:text-[#94A3B8] resize-none h-20 focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-slate-400 dark:text-neutral-700"
                                                         maxLength={500}
                                                     />
                                                     <div className="flex items-center justify-between mt-2">
-                                                        <span className="text-neutral-700 text-[10px] font-mono">
+                                                        <span className="text-slate-400 dark:text-neutral-700 text-[10px] font-mono">
                                                             {(localInstructions[zone.id] || '').length}/500
                                                         </span>
                                                         <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ export function ZoneRules() {
 
                 {/* Footer hint */}
                 {totalZones > 0 && (
-                    <div className="mt-8 flex items-start gap-2 text-neutral-600 text-xs bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3">
+                    <div className="mt-8 flex items-start gap-2 text-slate-400 dark:text-neutral-600 text-xs bg-slate-50/50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl px-4 py-3">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <p>Instructions are injected as <span className="text-cyan-500 font-mono">ROI ZONE RULES</span> into the LLM system prompt when you click EXECUTE on a camera. The AI uses these rules to evaluate zone intrusions and adjust risk scores.</p>
                     </div>

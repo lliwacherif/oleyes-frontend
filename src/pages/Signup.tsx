@@ -44,19 +44,19 @@ export const Signup = () => {
             style={{ backgroundImage: `url('${bgImage}')` }}
         >
             {/* Dark overlay just in case the background needs to be darker */}
-            <div className="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
+            <div className="absolute inset-0 bg-black/30 dark:bg-black/40 mix-blend-multiply"></div>
 
             <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-center relative z-10">
 
                 {/* Left Side: Branding */}
-                <div className="hidden md:flex flex-col justify-between h-[600px] text-white">
+                <div className="hidden md:flex flex-col justify-between h-[600px] text-neutral-900 dark:text-white">
                     <div className="flex items-center mt-8">
                         <img src={logo} alt="Oleyes Logo" className="h-16" />
                     </div>
 
                     <div className="mb-20">
                         <h1 className="text-5xl lg:text-6xl font-light mb-2">Smart AI</h1>
-                        <h1 className="text-5xl lg:text-6xl font-light italic text-white/90 mb-6">Surveillance.</h1>
+                        <h1 className="text-5xl lg:text-6xl font-light italic text-neutral-900 dark:text-white/90 mb-6">Surveillance.</h1>
                         <p className="text-xl lg:text-2xl font-light text-slate-600 dark:text-neutral-300 italic">Protecting What Matters Most</p>
                     </div>
                 </div>
@@ -64,7 +64,7 @@ export const Signup = () => {
                 {/* Right Side: Form */}
                 <div className="w-full max-w-md mx-auto">
                     <div className="mb-8">
-                        <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Create an account</h2>
+                        <h2 className="text-3xl font-semibold text-neutral-900 dark:text-white tracking-tight mb-2">Create an account</h2>
                         <p className="text-[#a0abcc] text-sm">Sign up now and gain access to exclusive content!</p>
                     </div>
 
@@ -76,49 +76,49 @@ export const Signup = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium text-white mb-2">Full Name</label>
+                            <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">Full Name</label>
                             <input
                                 type="text"
                                 required
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
-                                className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md"
+                                className="w-full bg-white/20 dark:bg-[#1e2548]/40 border border-white/30 dark:border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/60 dark:placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md"
                                 placeholder="Enter Your Full Name"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white mb-2">Business address</label>
+                            <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">Business address</label>
                             <input
                                 type="email"
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md"
+                                className="w-full bg-white/20 dark:bg-[#1e2548]/40 border border-white/30 dark:border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/60 dark:placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md"
                                 placeholder="name@email.com"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white mb-2">Password</label>
+                            <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">Password</label>
                             <input
                                 type="password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md text-xl tracking-[0.2em]"
+                                className="w-full bg-white/20 dark:bg-[#1e2548]/40 border border-white/30 dark:border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/60 dark:placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md text-xl tracking-[0.2em]"
                                 placeholder="••••••••"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white mb-2">Confirm Password</label>
+                            <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">Confirm Password</label>
                             <input
                                 type="password"
                                 required
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md text-xl tracking-[0.2em]"
+                                className="w-full bg-white/20 dark:bg-[#1e2548]/40 border border-white/30 dark:border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/60 dark:placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md text-xl tracking-[0.2em]"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -144,9 +144,9 @@ export const Signup = () => {
                     </p>
 
                     <div className="mt-6 flex items-center justify-center">
-                        <div className="h-px bg-white/10 w-full max-w-[100px]"></div>
+                        <div className="h-px bg-slate-100 dark:bg-white/10 w-full max-w-[100px]"></div>
                         <span className="px-4 text-xs text-[#a0abcc]">or</span>
-                        <div className="h-px bg-white/10 w-full max-w-[100px]"></div>
+                        <div className="h-px bg-slate-100 dark:bg-white/10 w-full max-w-[100px]"></div>
                     </div>
 
                     <button

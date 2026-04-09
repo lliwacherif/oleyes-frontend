@@ -238,7 +238,7 @@ export function Cameras() {
                         <Video className="w-8 h-8 text-[#10B981]" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-500 font-mono tracking-wider">
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-neutral-500 font-mono tracking-wider">
                             CAMERAS CONNECTIVITY
                         </h1>
                         <p className="text-sm font-mono tracking-widest text-[#10B981] uppercase mt-1">
@@ -256,7 +256,7 @@ export function Cameras() {
 
                 <div className="bg-white/60 dark:bg-[#0A0D2A]/60 rounded-2xl border border-slate-200 dark:border-[#1E2548] backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
                     <div className="p-6 border-b border-slate-200 dark:border-[#1E2548] flex justify-between items-center bg-gradient-to-r from-[#10B981]/5 to-transparent">
-                        <h2 className="text-white font-mono font-bold tracking-widest text-sm flex items-center gap-2">
+                        <h2 className="text-neutral-900 dark:text-white font-mono font-bold tracking-widest text-sm flex items-center gap-2">
                             <RefreshCw className="w-4 h-4 text-[#10B981]" />
                             RTSP STREAM CONFIGURATION
                         </h2>
@@ -277,14 +277,14 @@ export function Cameras() {
                                 return (
                                     <div key={cam?.id || `new-${i}`} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl bg-slate-50/80 dark:bg-[#060818]/80 border border-slate-200 dark:border-[#1E2548] hover:border-[#10B981]/30 transition-colors group">
                                         <div className="w-full sm:w-32 shrink-0">
-                                            <span className="text-xs font-mono tracking-widest font-bold text-slate-600 dark:text-[#94A3B8] uppercase group-hover:text-white transition-colors">
+                                            <span className="text-xs font-mono tracking-widest font-bold text-slate-600 dark:text-[#94A3B8] uppercase group-hover:text-neutral-900 dark:text-white transition-colors">
                                                 CAMERA {String(i + 1).padStart(2, '0')}
                                             </span>
                                         </div>
 
                                         <div className="flex-1 w-full flex flex-col gap-3 relative">
                                             {/* Protocol Toggle */}
-                                            <div className="flex bg-[#121738] rounded-lg p-1 w-max border border-slate-200 dark:border-[#1E2548]">
+                                            <div className="flex bg-slate-100 dark:bg-[#121738] rounded-lg p-1 w-max border border-slate-200 dark:border-[#1E2548]">
                                                 {(['RTSP', 'RTMP'] as const).map(type => (
                                                     <button
                                                         key={type}
@@ -301,41 +301,41 @@ export function Cameras() {
                                             </div>
 
                                             {(connectionTypes[i] || 'RTSP') === 'RTSP' ? (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#121738]/50 p-3 rounded-lg border border-slate-200 dark:border-[#1E2548]">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-100/50 dark:bg-[#121738]/50 p-3 rounded-lg border border-slate-200 dark:border-[#1E2548]">
                                                     <input
                                                         type="text" placeholder="IP Address (e.g. 192.168.1.100)"
                                                         value={rtspIps[i] || ''} onChange={e => handleFieldChange(setRtspIps, i, e.target.value)}
-                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-slate-800 dark:text-[#E2E8F0] placeholder-[#475569] outline-none"
                                                     />
                                                     <input
                                                         type="text" placeholder="Port (e.g. 554)"
                                                         value={rtspPorts[i] || ''} onChange={e => handleFieldChange(setRtspPorts, i, e.target.value)}
-                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-slate-800 dark:text-[#E2E8F0] placeholder-[#475569] outline-none"
                                                     />
                                                     <input
                                                         type="text" placeholder="Username (Optional)"
                                                         value={rtspUsers[i] || ''} onChange={e => handleFieldChange(setRtspUsers, i, e.target.value)}
-                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-slate-800 dark:text-[#E2E8F0] placeholder-[#475569] outline-none"
                                                     />
                                                     <input
                                                         type="password" placeholder="Password (Optional)"
                                                         value={rtspPasses[i] || ''} onChange={e => handleFieldChange(setRtspPasses, i, e.target.value)}
-                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-slate-800 dark:text-[#E2E8F0] placeholder-[#475569] outline-none"
                                                         autoComplete="new-password"
                                                     />
                                                     <input
                                                         type="text" placeholder="Stream Path (e.g. /cam/realmonitor?channel=1&subtype=0)"
                                                         value={rtspPaths[i] || ''} onChange={e => handleFieldChange(setRtspPaths, i, e.target.value)}
-                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none sm:col-span-2 lg:col-span-4"
+                                                        className="bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-xs font-mono text-slate-800 dark:text-[#E2E8F0] placeholder-[#475569] outline-none sm:col-span-2 lg:col-span-4"
                                                     />
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col gap-3">
-                                                    <div className="flex bg-[#121738]/50 p-3 rounded-lg border border-slate-200 dark:border-[#1E2548]">
+                                                    <div className="flex bg-slate-100/50 dark:bg-[#121738]/50 p-3 rounded-lg border border-slate-200 dark:border-[#1E2548]">
                                                         <input
                                                             type="text" placeholder="Stream Key (e.g. cam1)"
                                                             value={rtmpKeys[i] || ''} onChange={e => handleFieldChange(setRtmpKeys, i, e.target.value)}
-                                                            className="flex-1 bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-[10px] sm:text-xs font-mono text-[#E2E8F0] placeholder-[#475569] outline-none"
+                                                            className="flex-1 bg-white dark:bg-[#0A0D2A] border border-slate-200 dark:border-[#1E2548] focus:border-[#10B981]/50 rounded-md px-3 py-2 text-[10px] sm:text-xs font-mono text-slate-800 dark:text-[#E2E8F0] placeholder-[#475569] outline-none"
                                                         />
                                                     </div>
                                                     
@@ -345,7 +345,7 @@ export function Cameras() {
                                                             Enter this Custom URL into your camera's RTMP settings:
                                                         </p>
                                                         <div className="flex items-center gap-2">
-                                                            <code className="flex-1 bg-black/40 text-[#10B981] p-2 rounded text-[10px] sm:text-xs font-mono break-all selection:bg-[#10B981]/30">
+                                                            <code className="flex-1 bg-slate-200 dark:bg-black/40 text-[#10B981] p-2 rounded text-[10px] sm:text-xs font-mono break-all selection:bg-[#10B981]/30">
                                                                 rtmp://{import.meta.env.VITE_RTMP_SERVER_IP || 'localhost'}:1935/live/{(rtmpKeys[i] || 'cam1').trim()}
                                                             </code>
                                                             <button 
@@ -382,7 +382,7 @@ export function Cameras() {
                                                 <button
                                                     onClick={() => handleActiveToggle(i)}
                                                     disabled={!cam && ((connectionTypes[i] || 'RTSP') === 'RTMP' ? !(rtmpKeys[i] || '').trim() : !(rtspIps[i] || '').trim())}
-                                                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none border border-slate-200 dark:border-[#1E2548] shadow-inner ${isActive ? 'bg-[#10B981]/20' : 'bg-[#121738] disabled:opacity-50'}`}
+                                                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none border border-slate-200 dark:border-[#1E2548] shadow-inner ${isActive ? 'bg-[#10B981]/20' : 'bg-slate-100 dark:bg-[#121738] disabled:opacity-50'}`}
                                                 >
                                                     <span className={`inline-block h-5 w-5 transform rounded-full transition-transform ${isActive ? 'translate-x-8 bg-[#10B981] shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'translate-x-1 bg-[#64748B]'}`} />
                                                 </button>
@@ -398,7 +398,7 @@ export function Cameras() {
                                             {cam && (
                                                 <button
                                                     onClick={() => togglePreview(i)}
-                                                    className={`p-1.5 rounded-md border transition-colors flex items-center justify-center ${previewVisible[i] ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'bg-slate-200/50 dark:bg-[#1E2548]/50 border-slate-200 dark:border-[#1E2548] text-slate-600 dark:text-[#94A3B8] hover:text-white hover:bg-slate-200 dark:bg-[#1E2548]'}`}
+                                                    className={`p-1.5 rounded-md border transition-colors flex items-center justify-center ${previewVisible[i] ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'bg-slate-200/50 dark:bg-[#1E2548]/50 border-slate-200 dark:border-[#1E2548] text-slate-600 dark:text-[#94A3B8] hover:text-neutral-900 dark:text-white hover:bg-slate-200 dark:bg-[#1E2548]'}`}
                                                     title={previewVisible[i] ? "Hide Preview" : "Show Preview"}
                                                 >
                                                     {previewVisible[i] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -420,7 +420,7 @@ export function Cameras() {
                                         
                                         {/* Collapsible Preview Box */}
                                         {cam && previewVisible[i] && (
-                                            <div className="w-full mt-4 bg-black rounded-lg border border-slate-200 dark:border-[#1E2548] overflow-hidden aspect-video relative flex items-center justify-center">
+                                            <div className="w-full mt-4 bg-white dark:bg-black rounded-lg border border-slate-200 dark:border-[#1E2548] overflow-hidden aspect-video relative flex items-center justify-center">
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 dark:text-[#64748B] font-mono text-sm">
                                                     <AlertCircle className="w-6 h-6 mb-2 opacity-50" />
                                                     <span className="text-[10px] opacity-50">NO SIGNAL / CONNECTING...</span>
@@ -451,19 +451,19 @@ export function Cameras() {
                         Common RTSP Formats Reference
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono">
-                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-[#CBD5E1]">
+                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-slate-600 dark:text-[#CBD5E1]">
                             <span className="text-cyan-400 font-bold block mb-1">HIKVISION</span>
                             rtsp://admin:pass@IP:554/Streaming/Channels/101
                         </div>
-                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-[#CBD5E1]">
+                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-slate-600 dark:text-[#CBD5E1]">
                             <span className="text-cyan-400 font-bold block mb-1">DAHUA</span>
                             rtsp://admin:pass@IP:554/cam/realmonitor?channel=1&amp;subtype=0
                         </div>
-                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-[#CBD5E1]">
+                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-slate-600 dark:text-[#CBD5E1]">
                             <span className="text-cyan-400 font-bold block mb-1">TP-LINK TAPO</span>
                             rtsp://admin:pass@IP:554/stream1
                         </div>
-                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-[#CBD5E1]">
+                        <div className="p-3 bg-slate-50/50 dark:bg-[#060818]/50 border border-slate-200/50 dark:border-[#1E2548]/50 rounded text-slate-600 dark:text-[#CBD5E1]">
                             <span className="text-cyan-400 font-bold block mb-1">GENERIC / ONVIF</span>
                             rtsp://IP:554/live/ch0
                         </div>

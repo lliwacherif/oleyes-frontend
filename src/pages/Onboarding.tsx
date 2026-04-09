@@ -128,12 +128,12 @@ export const Onboarding = () => {
     // Render Form Field Helpers
     const renderInput = (label: string, value: string, setter: (v: string) => void, placeholder: string = '', type = 'text') => (
         <div className="mb-4">
-            <label className="block text-sm font-medium text-white mb-2">{label}</label>
+            <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">{label}</label>
             <input
                 type={type}
                 value={value}
                 onChange={(e) => setter(e.target.value)}
-                className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md"
+                className="w-full bg-white/20 dark:bg-[#1e2548]/40 border border-white/30 dark:border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/60 dark:placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md"
                 placeholder={placeholder}
             />
         </div>
@@ -141,15 +141,15 @@ export const Onboarding = () => {
 
     const renderSelect = (label: string, value: string, setter: (v: string) => void, options: string[], placeholder: string) => (
         <div className="mb-4">
-            <label className="block text-sm font-medium text-white mb-2">{label}</label>
+            <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">{label}</label>
             <select
                 value={value}
                 onChange={(e) => setter(e.target.value)}
-                className="w-full bg-[#1e2548]/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md appearance-none"
+                className="w-full bg-white/20 dark:bg-[#1e2548]/40 border border-white/30 dark:border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/60 dark:placeholder-[#6c779e] focus:outline-none focus:border-[#5978ff] focus:ring-1 focus:ring-[#5978ff] transition-all backdrop-blur-md appearance-none"
             >
                 <option value="" disabled className="bg-[#1e2548] text-slate-500 dark:text-neutral-400">{placeholder}</option>
                 {options.map(opt => (
-                    <option key={opt} value={opt} className="bg-[#1e2548] text-white">{opt}</option>
+                    <option key={opt} value={opt} className="bg-[#1e2548] text-neutral-900 dark:text-white">{opt}</option>
                 ))}
             </select>
         </div>
@@ -157,11 +157,11 @@ export const Onboarding = () => {
 
     const renderToggle = (label: string, key: keyof typeof priorities) => (
         <div className="flex items-center justify-between py-3 mb-2">
-            <span className="text-white text-md font-medium">{label}</span>
+            <span className="text-neutral-900 dark:text-white text-md font-medium">{label}</span>
             <button
                 type="button"
                 onClick={() => togglePriority(key)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${priorities[key] ? 'bg-white' : 'bg-white/20'}`}
+                className={`w-12 h-6 rounded-full transition-colors relative ${priorities[key] ? 'bg-white' : 'bg-slate-200 dark:bg-white/20'}`}
             >
                 <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${priorities[key] ? 'translate-x-6 bg-[#6b8cff]' : 'translate-x-1 bg-white'}`} />
             </button>
@@ -173,13 +173,13 @@ export const Onboarding = () => {
             className="min-h-screen bg-cover bg-center flex flex-col p-4 relative"
             style={{ backgroundImage: `url('${bgImage}')` }}
         >
-            <div className="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
+            <div className="absolute inset-0 bg-black/30 dark:bg-black/40 mix-blend-multiply"></div>
 
             {/* Stepper Header */}
             <div className="relative z-20 w-full max-w-3xl mx-auto pt-10 pb-12">
                 <div className="flex justify-between items-start relative">
                     {/* Progressive track line */}
-                    <div className="absolute top-7 left-12 right-12 -z-10 h-[3px] bg-white/20 rounded-full">
+                    <div className="absolute top-7 left-12 right-12 -z-10 h-[3px] bg-slate-200 dark:bg-white/20 rounded-full">
                         <div
                             className="absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-500 ease-in-out"
                             style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }}
@@ -190,11 +190,11 @@ export const Onboarding = () => {
                         <div key={s.id} className="flex flex-col items-center relative z-10 w-24">
                             <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 mb-3 ${step >= s.id
                                 ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]'
-                                : 'bg-transparent border-[3px] border-white/20'
+                                : 'bg-transparent border-[3px] border-slate-300 dark:border-white/20'
                                 }`}>
                                 <Check size={26} strokeWidth={2.5} className={`transition-opacity duration-300 ${step >= s.id ? 'opacity-100' : 'opacity-0'}`} />
                             </div>
-                            <span className={`text-[13px] font-medium tracking-wide text-center leading-tight transition-colors duration-300 ${step >= s.id ? 'text-white' : 'text-white/40'}`}>
+                            <span className={`text-[13px] font-medium tracking-wide text-center leading-tight transition-colors duration-300 ${step >= s.id ? 'text-neutral-900 dark:text-white' : 'text-neutral-900 dark:text-white/40'}`}>
                                 {s.title.split(' ').map((word, i) => <div key={i}>{word}</div>)}
                             </span>
                         </div>
@@ -206,14 +206,14 @@ export const Onboarding = () => {
             <div className="flex-1 w-full max-w-6xl mx-auto grid md:grid-cols-[1fr_450px] gap-12 items-center relative z-10 px-4 md:px-0">
 
                 {/* Left Side: Branding */}
-                <div className="hidden md:flex flex-col justify-between h-[500px] text-white">
+                <div className="hidden md:flex flex-col justify-between h-[500px] text-neutral-900 dark:text-white">
                     <div className="flex items-center">
                         <img src={logo} alt="Oleyes Logo" className="h-16" />
                     </div>
 
                     <div className="mb-10">
                         <h1 className="text-5xl lg:text-5xl font-light mb-2">Smart AI</h1>
-                        <h1 className="text-5xl lg:text-5xl font-light italic text-white/90 mb-5">Surveillance.</h1>
+                        <h1 className="text-5xl lg:text-5xl font-light italic text-neutral-900 dark:text-white/90 mb-5">Surveillance.</h1>
                         <p className="text-xl lg:text-xl font-light text-slate-600 dark:text-neutral-300 italic">Protecting What Matters Most</p>
                     </div>
                 </div>
@@ -263,7 +263,7 @@ export const Onboarding = () => {
                             <button
                                 type="button"
                                 onClick={handleBack}
-                                className="bg-white/5 border border-white/10 text-white font-medium py-3 px-8 rounded-xl hover:bg-white/10 transition-colors"
+                                className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-neutral-900 dark:text-white font-medium py-3 px-8 rounded-xl hover:bg-slate-100 dark:bg-white/10 transition-colors"
                             >
                                 Back
                             </button>

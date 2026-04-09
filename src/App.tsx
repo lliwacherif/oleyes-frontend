@@ -14,6 +14,7 @@ import { ZoneRules } from './pages/ZoneRules';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function Dashboard() {
   const { sceneContext } = useSettings();
@@ -27,31 +28,31 @@ function Dashboard() {
         {/* Horizontal System Status Bar & Action Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0A0D2A]/80 border border-[#1E2548] shadow-sm backdrop-blur-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-[#0A0D2A]/80 border border-slate-200 dark:border-[#1E2548] shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.8)]" />
-              <span className="text-[9px] font-medium text-neutral-500 tracking-widest uppercase">BACKEND: <span className="text-[#10B981] font-bold">ACTIVE</span></span>
+              <span className="text-[9px] font-medium text-slate-500 dark:text-neutral-500 tracking-widest uppercase">BACKEND: <span className="text-[#10B981] font-bold">ACTIVE</span></span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0A0D2A]/80 border border-[#1E2548] shadow-sm backdrop-blur-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-[#0A0D2A]/80 border border-slate-200 dark:border-[#1E2548] shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.8)]" />
-              <span className="text-[9px] font-medium text-neutral-500 tracking-widest uppercase">VISION: <span className="text-cyan-400 font-bold">YOLOv11</span></span>
+              <span className="text-[9px] font-medium text-slate-500 dark:text-neutral-500 tracking-widest uppercase">VISION: <span className="text-cyan-600 dark:text-cyan-400 font-bold">YOLOv11</span></span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0A0D2A]/80 border border-[#1E2548] shadow-sm backdrop-blur-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-[#0A0D2A]/80 border border-slate-200 dark:border-[#1E2548] shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
-              <span className="text-[9px] font-medium text-neutral-500 tracking-widest uppercase">LLM: <span className="text-[#A855F7] font-bold">GPT-OSS-120B</span></span>
+              <span className="text-[9px] font-medium text-slate-500 dark:text-neutral-500 tracking-widest uppercase">LLM: <span className="text-[#A855F7] font-bold">GPT-OSS-120B</span></span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/cameras')}
-              className="flex items-center gap-2 px-4 py-2 bg-[#10B981]/10 hover:bg-[#10B981]/20 border border-[#10B981]/30 text-[#10B981] rounded shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all font-mono text-[10px] uppercase font-bold tracking-widest"
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-[#10B981]/10 hover:bg-emerald-100 dark:hover:bg-[#10B981]/20 border border-emerald-300 dark:border-[#10B981]/30 text-[#10B981] rounded shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all font-mono text-[10px] uppercase font-bold tracking-widest"
             >
               <Video className="w-4 h-4" />
               CAMERAS CONNECTIVITY
             </button>
             <button
               onClick={() => setIsChatOpen(!isChatOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#A855F7]/10 hover:bg-[#A855F7]/20 border border-[#A855F7]/30 text-[#A855F7] rounded shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all font-mono text-[10px] uppercase font-bold tracking-widest"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-[#A855F7]/10 hover:bg-purple-100 dark:hover:bg-[#A855F7]/20 border border-purple-300 dark:border-[#A855F7]/30 text-[#A855F7] rounded shadow-sm dark:shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all font-mono text-[10px] uppercase font-bold tracking-widest"
             >
               <Bot className="w-4 h-4" />
               {isChatOpen ? 'CLOSE OVERWATCH' : 'AI OVERWATCH'}
@@ -73,13 +74,13 @@ function Dashboard() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: '100%', opacity: 0 }}
                 transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-                className="fixed top-[64px] right-0 h-[calc(100vh-64px)] w-full sm:w-[500px] z-40 bg-[#060818]/95 backdrop-blur-2xl border-l border-[#1E2548] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] flex flex-col pt-6 px-6 pb-6"
+                className="fixed top-[64px] right-0 h-[calc(100vh-64px)] w-full sm:w-[500px] z-40 bg-white/95 dark:bg-[#060818]/95 backdrop-blur-2xl border-l border-slate-200 dark:border-[#1E2548] shadow-[-10px_0_30px_rgba(0,0,0,0.1)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] flex flex-col pt-6 px-6 pb-6"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2">
+                  <h3 className="text-slate-800 dark:text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2">
                     <Bot className="w-4 h-4 text-[#A855F7]" /> AI OVERWATCH [COMM_LINK]
                   </h3>
-                  <button onClick={() => setIsChatOpen(false)} className="text-neutral-500 hover:text-white transition-colors p-1">
+                  <button onClick={() => setIsChatOpen(false)} className="text-slate-400 dark:text-neutral-500 hover:text-slate-800 dark:hover:text-white transition-colors p-1">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -99,24 +100,26 @@ function Dashboard() {
 
 function App() {
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/cameras" element={<Cameras />} />
-              <Route path="/zone-rules" element={<ZoneRules />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </SettingsProvider>
-    </AuthProvider >
+    <ThemeProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/cameras" element={<Cameras />} />
+                <Route path="/zone-rules" element={<ZoneRules />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </SettingsProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

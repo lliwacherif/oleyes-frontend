@@ -51,20 +51,20 @@ export function LlmChat({ sceneContext }: { sceneContext?: string }) {
     };
 
     return (
-        <div className="bg-white/60 dark:bg-[#0A0D2A]/60 p-1 rounded-2xl border border-slate-200 dark:border-[#1E2548] backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col h-full min-h-[600px] overflow-hidden relative group">
-            <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none rounded-2xl" />
+        <div className="bg-white/60 dark:bg-[#0A0D2A]/60 p-1 rounded-2xl border border-slate-200 dark:border-[#1E2548] backdrop-blur-md shadow-lg dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col h-full min-h-[600px] overflow-hidden relative group">
+            <div className="absolute inset-0 bg-gradient-to-b from-purple-100/30 dark:from-purple-900/10 to-transparent pointer-events-none rounded-2xl" />
 
             {/* Header */}
             <div className="px-5 py-4 border-b border-slate-200 dark:border-[#1E2548] flex items-center justify-between bg-transparent relative z-10">
                 <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-[#A855F7]/20 border border-[#A855F7]/30 rounded flex items-center justify-center shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                    <div className="p-1.5 bg-[#A855F7]/20 border border-[#A855F7]/30 rounded flex items-center justify-center shadow-sm dark:shadow-[0_0_10px_rgba(168,85,247,0.2)]">
                         <Sparkles className="w-4 h-4 text-[#A855F7]" />
                     </div>
                     <div>
-                        <h2 className="font-bold text-sm tracking-wide text-white">AI OVERWATCH</h2>
+                        <h2 className="font-bold text-sm tracking-wide text-slate-800 dark:text-white">AI OVERWATCH</h2>
                         <div className="flex items-center gap-1.5 mt-0.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.8)]" />
-                            <span className="text-[8px] font-mono text-slate-500 dark:text-[#64748B] uppercase tracking-[0.2em]">GPT - OSS - 120B :: ONLINE</span>
+                            <span className="text-[8px] font-mono text-slate-400 dark:text-[#64748B] uppercase tracking-[0.2em]">GPT - OSS - 120B :: ONLINE</span>
                         </div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@ export function LlmChat({ sceneContext }: { sceneContext?: string }) {
                             )}
                         >
                             {msg.role === 'assistant' && (
-                                <div className="w-8 h-8 rounded bg-[#A855F7]/10 border border-[#A855F7]/20 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                                <div className="w-8 h-8 rounded bg-[#A855F7]/10 border border-[#A855F7]/20 flex items-center justify-center shrink-0 shadow-sm dark:shadow-[0_0_10px_rgba(168,85,247,0.1)]">
                                     <Sparkles className="w-4 h-4 text-[#A855F7]" />
                                 </div>
                             )}
@@ -91,8 +91,8 @@ export function LlmChat({ sceneContext }: { sceneContext?: string }) {
                             <div className={cn(
                                 "px-4 py-3 text-[11px] leading-relaxed",
                                 msg.role === 'user'
-                                    ? "bg-[#1E3A8A]/30 text-blue-100 border border-[#1E3A8A]/50 rounded-lg rounded-tr-sm shadow-sm"
-                                    : "bg-transparent text-[#CBD5E1] border border-slate-200 dark:border-[#1E2548] rounded-lg rounded-tl-sm shadow-sm"
+                                    ? "bg-blue-100 dark:bg-[#1E3A8A]/30 text-blue-800 dark:text-blue-100 border border-blue-200 dark:border-[#1E3A8A]/50 rounded-lg rounded-tr-sm shadow-sm"
+                                    : "bg-transparent text-slate-700 dark:text-[#CBD5E1] border border-slate-200 dark:border-[#1E2548] rounded-lg rounded-tl-sm shadow-sm"
                             )}>
                                 {msg.content}
                             </div>
@@ -118,7 +118,7 @@ export function LlmChat({ sceneContext }: { sceneContext?: string }) {
             {/* Input */}
             <form onSubmit={handleSend} className="p-4 border-t border-slate-200 dark:border-[#1E2548] bg-transparent relative z-10">
                 <div className="relative flex items-center group/chat">
-                    <span className="absolute left-4 font-mono text-xs text-slate-500 dark:text-[#64748B] group-focus-within/chat:text-slate-600 dark:text-[#94A3B8] pointer-events-none transition-colors">
+                    <span className="absolute left-4 font-mono text-xs text-slate-400 dark:text-[#64748B] group-focus-within/chat:text-slate-600 dark:group-focus-within/chat:text-[#94A3B8] pointer-events-none transition-colors">
                         &gt;
                     </span>
                     <input
@@ -126,7 +126,7 @@ export function LlmChat({ sceneContext }: { sceneContext?: string }) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="QUERY_AI_OVERWATCH..."
-                        className="w-full bg-[#121738] border border-slate-200 dark:border-[#1E2548] rounded pl-8 pr-4 py-4 font-mono text-xs text-[#E2E8F0] placeholder-[#64748B] focus:outline-none focus:border-cyan-500/50 transition-all shadow-inner"
+                        className="w-full bg-slate-100 dark:bg-[#121738] border border-slate-200 dark:border-[#1E2548] rounded pl-8 pr-4 py-4 font-mono text-xs text-slate-800 dark:text-[#E2E8F0] placeholder-slate-400 dark:placeholder-[#64748B] focus:outline-none focus:border-cyan-500/50 transition-all shadow-inner"
                     />
                 </div>
             </form>

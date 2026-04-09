@@ -165,7 +165,7 @@ export function Settings() {
                 type={type}
                 value={(contextData[field] as string) || ''}
                 onChange={(e) => setContextData(prev => ({ ...prev, [field]: e.target.value }))}
-                className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500/50"
+                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-neutral-900 dark:text-white focus:outline-none focus:border-emerald-500/50"
                 placeholder={placeholder}
             />
         </div>
@@ -174,8 +174,8 @@ export function Settings() {
     const renderToggle = (label: string, field: keyof NonNullable<ContextData['security_priorities']>) => {
         const value = contextData.security_priorities?.[field] || false;
         return (
-            <div className="flex items-center justify-between py-2 mb-2 bg-black/10 px-4 rounded-xl border border-white/5">
-                <span className="text-white text-sm">{label}</span>
+            <div className="flex items-center justify-between py-2 mb-2 bg-slate-50 dark:bg-black/10 px-4 rounded-xl border border-slate-200 dark:border-white/5">
+                <span className="text-neutral-900 dark:text-white text-sm">{label}</span>
                 <button
                     type="button"
                     onClick={() => setContextData(prev => ({
@@ -185,7 +185,7 @@ export function Settings() {
                             [field]: !value
                         }
                     }))}
-                    className={`w-10 h-5 rounded-full transition-colors relative ${value ? 'bg-emerald-500' : 'bg-white/20'}`}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${value ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/20'}`}
                 >
                     <div className={`w-4 h-4 rounded-full shadow-md transform transition-transform absolute top-0.5 ${value ? 'translate-x-5 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
                 </button>
@@ -196,77 +196,89 @@ export function Settings() {
     return (
         <Layout>
             <div className="container mx-auto px-4 py-8 max-w-4xl">
-                <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
+                <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-8">Settings</h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Change Password Card */}
                     <button
                         onClick={() => setIsPasswordModalOpen(true)}
-                        className="p-6 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all text-left group"
+                        className="p-6 rounded-2xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:bg-white/10 backdrop-blur-sm transition-all text-left group"
                     >
                         <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <Lock className="w-6 h-6" />
                         </div>
-                        <h3 className="font-bold text-lg text-white mb-2">Change Password</h3>
+                        <h3 className="font-bold text-lg text-neutral-900 dark:text-white mb-2">Change Password</h3>
                         <p className="text-slate-500 dark:text-neutral-400 text-sm">Update your account password to keep your account secure.</p>
                     </button>
 
                     {/* Context Card */}
                     <button
                         onClick={() => setIsContextModalOpen(true)}
-                        className="p-6 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all text-left group"
+                        className="p-6 rounded-2xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:bg-white/10 backdrop-blur-sm transition-all text-left group"
                     >
                         <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-6 h-6" />
                         </div>
-                        <h3 className="font-bold text-lg text-white mb-2">Scene Context</h3>
+                        <h3 className="font-bold text-lg text-neutral-900 dark:text-white mb-2">Scene Context</h3>
                         <p className="text-slate-500 dark:text-neutral-400 text-sm">Configure the environment description for the AI engine.</p>
                     </button>
 
                     {/* ROI Zones Card */}
                     <button
                         onClick={() => setIsZonesModalOpen(true)}
-                        className="p-6 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all text-left group"
+                        className="p-6 rounded-2xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:bg-white/10 backdrop-blur-sm transition-all text-left group"
                     >
                         <div className="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <MapPin className="w-6 h-6" />
                         </div>
-                        <h3 className="font-bold text-lg text-white mb-2">ROI Zones</h3>
+                        <h3 className="font-bold text-lg text-neutral-900 dark:text-white mb-2">ROI Zones</h3>
                         <p className="text-slate-500 dark:text-neutral-400 text-sm">View and manage detection zones configured on your cameras.</p>
                     </button>
                 </div>
 
                 {/* AI Engine Configuration Section */}
-                <div className="mt-8 bg-white/5 border border-white/5 rounded-2xl p-6">
-                    <h2 className="text-xl font-bold text-white mb-6">AI Engine Configuration</h2>
+                <div className="mt-8 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl p-6">
+                    <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">AI Engine Configuration</h2>
                     
-                    <div className="flex items-start justify-between bg-black/20 p-5 rounded-xl border border-white/5">
+                    <div className="flex items-start justify-between bg-slate-100 dark:bg-black/20 p-5 rounded-xl border border-slate-100 dark:border-white/5">
                         <div className="max-w-2xl text-left">
-                            <h3 className="text-white font-semibold mb-1">Advanced Theft Mode (Pose AI)</h3>
+                            <h3 className="text-neutral-900 dark:text-white font-semibold mb-1">Advanced Theft Mode (Pose AI)</h3>
                             <p className="text-slate-500 dark:text-neutral-400 text-sm leading-relaxed">
                                 Switches the AI engine to track skeletal movements (wrists/hips) for extreme accuracy in shoplifting detection. Uses more server resources.
                             </p>
                         </div>
                         <button
                             type="button"
-                            onClick={() => setPoseTheftMode(!poseTheftMode)}
-                            className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${poseTheftMode ? 'bg-emerald-500' : 'bg-white/20'}`}
+                            onClick={() => {
+                                if (!poseTheftMode && supremeMode) {
+                                    alert("You cannot enable Advanced Theft Mode while Supreme OLEYES is active. Please disable Supreme OLEYES first.");
+                                    return;
+                                }
+                                setPoseTheftMode(!poseTheftMode);
+                            }}
+                            className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${poseTheftMode ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/20'} ${!poseTheftMode && supremeMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${poseTheftMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
                         </button>
                     </div>
 
-                    <div className="flex items-start justify-between bg-black/20 p-5 rounded-xl border border-white/5 mt-4">
+                    <div className="flex items-start justify-between bg-slate-100 dark:bg-black/20 p-5 rounded-xl border border-slate-100 dark:border-white/5 mt-4">
                         <div className="max-w-2xl text-left">
-                            <h3 className="text-white font-semibold mb-1">Supreme OLEYES</h3>
+                            <h3 className="text-neutral-900 dark:text-white font-semibold mb-1">Supreme OLEYES</h3>
                             <p className="text-slate-500 dark:text-neutral-400 text-sm leading-relaxed">
                                 Activates the Pixtral Vision Language Model for direct visual theft analysis. Instead of text-based AI, the system sends 3-frame video sequences directly to a VLM for visual shoplifting detection. Uses more API resources.
                             </p>
                         </div>
                         <button
                             type="button"
-                            onClick={() => setSupremeMode(!supremeMode)}
-                            className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${supremeMode ? 'bg-emerald-500' : 'bg-white/20'}`}
+                            onClick={() => {
+                                if (!supremeMode && poseTheftMode) {
+                                    alert("You cannot enable Supreme OLEYES while Advanced Theft Mode is active. Please disable Advanced Theft Mode first.");
+                                    return;
+                                }
+                                setSupremeMode(!supremeMode);
+                            }}
+                            className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${supremeMode ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/20'} ${!supremeMode && poseTheftMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${supremeMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
                         </button>
@@ -277,14 +289,14 @@ export function Settings() {
             {/* Password Modal */}
             {isPasswordModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-md relative">
+                    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-md relative">
                         <button
                             onClick={() => setIsPasswordModalOpen(false)}
-                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-white"
+                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-neutral-900 dark:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        <h2 className="text-xl font-bold text-white mb-6">Change Password</h2>
+                        <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">Change Password</h2>
                         <form onSubmit={handlePasswordSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm text-slate-500 dark:text-neutral-400 mb-1">Current Password</label>
@@ -292,7 +304,7 @@ export function Settings() {
                                     type="password"
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500/50"
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-neutral-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                     required
                                 />
                             </div>
@@ -302,7 +314,7 @@ export function Settings() {
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500/50"
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-neutral-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                     required
                                 />
                             </div>
@@ -312,7 +324,7 @@ export function Settings() {
                                     type="password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500/50"
+                                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-neutral-900 dark:text-white focus:outline-none focus:border-purple-500/50"
                                     required
                                 />
                             </div>
@@ -330,16 +342,16 @@ export function Settings() {
             {/* Context Modal */}
             {isContextModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-xl relative">
+                    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-xl relative">
                         <button
                             onClick={() => setIsContextModalOpen(false)}
-                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-white"
+                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-neutral-900 dark:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        <h3 className="font-bold text-lg mb-2 text-white flex items-center gap-2">
+                        <h3 className="font-bold text-lg mb-2 text-neutral-900 dark:text-white flex items-center gap-2">
                             Scene Context
-                            <span className="text-xs font-normal text-slate-500 dark:text-neutral-400 px-2 py-0.5 rounded-full bg-white/10">Optional</span>
+                            <span className="text-xs font-normal text-slate-500 dark:text-neutral-400 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10">Optional</span>
                         </h3>
                         <p className="text-sm text-slate-500 dark:text-neutral-400 mb-6">
                             Configure your business details and security priorities below.
@@ -359,7 +371,7 @@ export function Settings() {
                             <form onSubmit={handleContextSubmit} className="max-h-[60vh] overflow-y-auto pr-2 space-y-6 custom-scrollbar">
                                 {/* Basic Details */}
                                 <div>
-                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Business Details</h4>
+                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Business Details</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {renderInput('Business Name', 'business_name', 'Enter Business Name')}
                                         {renderInput('Business Type', 'business_type', 'e.g., Supermarket')}
@@ -371,7 +383,7 @@ export function Settings() {
 
                                 {/* Camera Details */}
                                 <div>
-                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Camera Setup</h4>
+                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Camera Setup</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {renderInput('Estimated Cameras', 'estimated_cameras', 'e.g., 15', 'number')}
                                         {renderInput('Camera Type', 'camera_type', 'IP Cameras')}
@@ -380,7 +392,7 @@ export function Settings() {
 
                                 {/* Security Priorities */}
                                 <div>
-                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Security Priorities</h4>
+                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Security Priorities</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
                                         {renderToggle('Theft Detection', 'theft_detection')}
                                         {renderToggle('Fire Detection', 'fire_detection')}
@@ -390,9 +402,9 @@ export function Settings() {
                                     </div>
                                 </div>
 
-                                <div className="border-t border-white/10 mt-6 pt-6">
-                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-white/10 pb-2">Generated Context</h4>
-                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 text-sm text-slate-600 dark:text-neutral-300 leading-relaxed min-h-[80px] max-h-[200px] overflow-y-auto custom-scrollbar whitespace-pre-wrap">
+                                <div className="border-t border-slate-200 dark:border-white/10 mt-6 pt-6">
+                                    <h4 className="text-emerald-400 font-semibold mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Generated Context</h4>
+                                    <div className="bg-slate-100 dark:bg-black/20 p-4 rounded-xl border border-slate-100 dark:border-white/5 text-sm text-slate-600 dark:text-neutral-300 leading-relaxed min-h-[80px] max-h-[200px] overflow-y-auto custom-scrollbar whitespace-pre-wrap">
                                         {contextData.context_text || "None"}
                                     </div>
                                 </div>
@@ -415,14 +427,14 @@ export function Settings() {
             {/* Zones Modal */}
             {isZonesModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl relative">
+                    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-2xl relative">
                         <button
                             onClick={() => setIsZonesModalOpen(false)}
-                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-white"
+                            className="absolute top-4 right-4 text-slate-500 dark:text-neutral-400 hover:text-neutral-900 dark:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-1 flex items-center gap-2">
                             <MapPin className="w-5 h-5 text-cyan-400" />
                             ROI Zone Management
                         </h2>
@@ -444,18 +456,18 @@ export function Settings() {
                                     const cam = cameras.find(c => c.id === camId);
                                     return (
                                         <div key={camId}>
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-white/10">
                                                 <Camera className="w-4 h-4 text-cyan-400" />
-                                                <span className="text-white font-semibold text-sm">{cam?.name || `Camera ${camId.substring(0, 6)}`}</span>
+                                                <span className="text-neutral-900 dark:text-white font-semibold text-sm">{cam?.name || `Camera ${camId.substring(0, 6)}`}</span>
                                                 <span className="text-slate-400 dark:text-neutral-500 text-xs ml-auto">{zones.length} zone{zones.length !== 1 ? 's' : ''}</span>
                                             </div>
                                             <div className="space-y-2">
                                                 {zones.map(zone => (
-                                                    <div key={zone.id} className="bg-white/5 border border-white/5 rounded-xl px-4 py-3 group hover:bg-white/10 transition-colors">
+                                                    <div key={zone.id} className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl px-4 py-3 group hover:bg-slate-100 dark:bg-white/10 transition-colors">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-4 h-4 rounded-full border-2 border-white/20 flex-shrink-0" style={{ backgroundColor: zone.color }} />
+                                                            <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-white/20 flex-shrink-0" style={{ backgroundColor: zone.color }} />
                                                             <div className="flex-1 min-w-0">
-                                                                <div className="text-white text-sm font-medium truncate">{zone.name}</div>
+                                                                <div className="text-neutral-900 dark:text-white text-sm font-medium truncate">{zone.name}</div>
                                                                 <div className="text-slate-400 dark:text-neutral-500 text-xs">
                                                                     {zone.points.length} vertices · {zone.color}
                                                                     {zone.created_at && ` · ${new Date(zone.created_at).toLocaleDateString()}`}
