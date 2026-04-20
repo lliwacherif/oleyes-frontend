@@ -9,7 +9,7 @@ export function Settings() {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isContextModalOpen, setIsContextModalOpen] = useState(false);
     const [isZonesModalOpen, setIsZonesModalOpen] = useState(false);
-    const { setSceneContext, poseTheftMode, setPoseTheftMode, supremeMode, setSupremeMode } = useSettings();
+    const { setSceneContext, poseTheftMode, setPoseTheftMode, supremeMode, setSupremeMode, vlmAlwaysOn, setVlmAlwaysOn } = useSettings();
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -283,6 +283,28 @@ export function Settings() {
                             <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${supremeMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
                         </button>
                     </div>
+
+                    {/* VLM Always On — sub-toggle, visible only when Supreme is enabled */}
+                    {supremeMode && (
+                        <div className="flex items-start justify-between bg-amber-50 dark:bg-amber-950/20 p-5 rounded-xl border border-amber-200 dark:border-amber-500/20 mt-3 ml-6">
+                            <div className="max-w-2xl text-left">
+                                <h3 className="text-neutral-900 dark:text-white font-semibold mb-1 flex items-center gap-2">
+                                    VLM Always On
+                                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">GPU Intensive</span>
+                                </h3>
+                                <p className="text-slate-500 dark:text-neutral-400 text-sm leading-relaxed">
+                                    Sends frames to the VLM on every cycle, regardless of whether a person is near merchandise. Useful when the VLM fails to trigger automatically. Uses significantly more API resources.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setVlmAlwaysOn(!vlmAlwaysOn)}
+                                className={`w-12 h-6 rounded-full transition-colors relative ml-4 flex-shrink-0 mt-1 ${vlmAlwaysOn ? 'bg-amber-500' : 'bg-slate-200 dark:bg-white/20'}`}
+                            >
+                                <div className={`w-5 h-5 rounded-full shadow-md transform transition-transform absolute top-0.5 ${vlmAlwaysOn ? 'translate-x-6 bg-white' : 'translate-x-1 bg-neutral-400'}`} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

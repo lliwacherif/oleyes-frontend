@@ -167,7 +167,7 @@ const SkeletonOverlay = memo(({ cameraId }: { cameraId: string }) => {
 });
 
 export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
-    const { poseTheftMode, supremeMode } = useSettings();
+    const { poseTheftMode, supremeMode, vlmAlwaysOn } = useSettings();
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [logicData, setLogicData] = useState<LogicOutput | null>(null);
@@ -358,7 +358,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
 
         try {
             const cleanUrl = targetUrl.trim();
-            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId, poseTheftMode, supremeMode);
+            const resp = await api.detectRtsp(cleanUrl, sceneContext, cameraId, poseTheftMode, supremeMode, vlmAlwaysOn);
 
             setJobId(resp.job_id);
             setStatus(resp.status);
@@ -393,7 +393,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
         try {
             const parts = streamKey.split('/');
             const cleanKey = parts[parts.length - 1].trim();
-            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId, poseTheftMode, supremeMode);
+            const resp = await api.detectRtmp(cleanKey, sceneContext, cameraId, poseTheftMode, supremeMode, vlmAlwaysOn);
 
             setJobId(resp.job_id);
             setStatus(resp.status);

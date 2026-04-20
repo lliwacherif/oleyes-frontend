@@ -108,6 +108,7 @@ export interface YoloDetectRequest {
     scene_context?: string;
     pose_theft_mode?: boolean;
     supreme_mode?: boolean;
+    vlm_always_on?: boolean;
 }
 
 export interface YoloDetectRtspRequest {
@@ -117,6 +118,7 @@ export interface YoloDetectRtspRequest {
     scene_context?: string;
     pose_theft_mode?: boolean;
     supreme_mode?: boolean;
+    vlm_always_on?: boolean;
 }
 
 export interface YoloDetectRtmpRequest {
@@ -126,6 +128,7 @@ export interface YoloDetectRtmpRequest {
     scene_context?: string;
     pose_theft_mode?: boolean;
     supreme_mode?: boolean;
+    vlm_always_on?: boolean;
 }
 
 export interface YoloJobResponse {

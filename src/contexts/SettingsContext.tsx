@@ -9,6 +9,8 @@ interface SettingsContextType {
     setPoseTheftMode: (mode: boolean) => void;
     supremeMode: boolean;
     setSupremeMode: (mode: boolean) => void;
+    vlmAlwaysOn: boolean;
+    setVlmAlwaysOn: (on: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const [sceneContext, setSceneContext] = useState(localStorage.getItem('sceneContext') || '');
     const [poseTheftMode, setPoseTheftModeState] = useState(localStorage.getItem('poseTheftMode') === 'true');
     const [supremeMode, setSupremeModeState] = useState(localStorage.getItem('supremeMode') === 'true');
+    const [vlmAlwaysOn, setVlmAlwaysOnState] = useState(localStorage.getItem('vlmAlwaysOn') === 'true');
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -56,11 +59,20 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         if (value) {
             setPoseTheftModeState(false);
             localStorage.setItem('poseTheftMode', 'false');
+        } else {
+            // Turn off VLM Always On when Supreme is disabled
+            setVlmAlwaysOnState(false);
+            localStorage.setItem('vlmAlwaysOn', 'false');
         }
     };
 
+    const setVlmAlwaysOn = (value: boolean) => {
+        setVlmAlwaysOnState(value);
+        localStorage.setItem('vlmAlwaysOn', String(value));
+    };
+
     return (
-        <SettingsContext.Provider value={{ sceneContext, setSceneContext: handleSetSceneContext, poseTheftMode, setPoseTheftMode, supremeMode, setSupremeMode }}>
+        <SettingsContext.Provider value={{ sceneContext, setSceneContext: handleSetSceneContext, poseTheftMode, setPoseTheftMode, supremeMode, setSupremeMode, vlmAlwaysOn, setVlmAlwaysOn }}>
             {children}
         </SettingsContext.Provider>
     );
