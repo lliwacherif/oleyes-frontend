@@ -821,19 +821,19 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                                     <div className="text-[#06B6D4] font-bold mb-3 tracking-widest">[ SYS.LOGIC_SUMMARY ]</div>
                                                     <div className="text-slate-400 dark:text-neutral-500 mb-2">&gt;</div>
                                                     <div className="text-slate-600 dark:text-[#94A3B8] leading-relaxed pt-2">
-                                                        {logicData.summary_text ? renderParsedSummary(logicData.summary_text) : null}
+                                                        {logicData?.summary_text ? renderParsedSummary(logicData.summary_text) : null}
 
-                                                        {logicData.scene_text && logicData.scene_text !== logicData.summary_text && (
-                                                            <div className={logicData.summary_text ? "mt-4 pt-4 border-t border-slate-200/50 dark:border-[#1E2548]/50" : ""}>
+                                                        {logicData?.scene_text && logicData.scene_text !== logicData.summary_text && (
+                                                            <div className={logicData?.summary_text ? "mt-4 pt-4 border-t border-slate-200/50 dark:border-[#1E2548]/50" : ""}>
                                                                 {(() => {
-                                                                    const isParsed = logicData.scene_text.includes('EVENTS:') || logicData.scene_text.includes('TIMELINE');
+                                                                    const isParsed = logicData!.scene_text.includes('EVENTS:') || logicData!.scene_text.includes('TIMELINE');
                                                                     if (isParsed) {
-                                                                        return renderParsedSummary(logicData.scene_text);
+                                                                        return renderParsedSummary(logicData!.scene_text);
                                                                     } else {
                                                                         return (
                                                                             <div className="text-slate-500 dark:text-[#64748B]">
                                                                                 <span className="text-[#06B6D4] font-bold mb-1 block">SCENE_CONTEXT:</span>
-                                                                                {logicData.scene_text}
+                                                                                {logicData!.scene_text}
                                                                             </div>
                                                                         );
                                                                     }
@@ -883,18 +883,18 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                 )}
 
                                 {/* Critical Events Grid */}
-                                {!poseTheftMode && !supremeMode && (logicData?.armed_subjects?.length > 0 || logicData?.fighting_pairs?.length > 0) && (
+                                {!poseTheftMode && !supremeMode && ((logicData?.armed_subjects?.length ?? 0) > 0 || (logicData?.fighting_pairs?.length ?? 0) > 0) && (
                                     <div className="bg-red-50 dark:bg-[#1a0f14] rounded-sm p-4 border border-red-500/40 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)] mb-4">
                                         <h4 className="text-red-400 font-mono text-xs tracking-widest mb-3 flex items-center gap-2 uppercase">
                                             <Activity className="w-4 h-4" /> [CRITICAL_EVENTS_DETECTED]
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {(logicData.armed_subjects || []).map((subj, i) => (
+                                            {(logicData?.armed_subjects || []).map((subj, i) => (
                                                 <div key={`armed-${i}`} className="text-red-300 font-mono text-xs bg-red-950/40 p-2 border border-red-500/30">
                                                     <span className="text-red-500 font-bold mr-2">!</span> ARMED: {subj}
                                                 </div>
                                             ))}
-                                            {(logicData.fighting_pairs || []).map((pair, i) => (
+                                            {(logicData?.fighting_pairs || []).map((pair, i) => (
                                                 <div key={`fight-${i}`} className="text-amber-300 font-mono text-xs bg-amber-950/40 p-2 border border-amber-500/30">
                                                     <span className="text-amber-500 font-bold mr-2">!</span> FIGHT: {pair}
                                                 </div>
