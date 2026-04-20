@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../api/client';
 import type { YoloStreamMessage, LogicOutput, YoloFrameEvent, CameraData, Zone, ZonePoint, ZoneAlert } from '../api/types';
-import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Play, AlertCircle, ShieldAlert, Activity, Users, StopCircle, Video, Eye, X, ChevronDown, ChevronUp, Monitor, Minimize2, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { useSettings } from '../contexts/SettingsContext';
@@ -195,6 +195,45 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
     // Logic Engine accordion state
     const [isLogicExpanded, setIsLogicExpanded] = useState(false);
     const [isRawLogsExpanded, setIsRawLogsExpanded] = useState(false);
+
+    // Live Feed PiP (Picture-in-Picture) state
+    const [liveFeedPipId, setLiveFeedPipId] = useState<string | null>(null);
+    const [pipExpanded, setPipExpanded] = useState(false);
+    const [pipPos, setPipPos] = useState({ x: 0, y: 0 });
+    const [isDraggingPip, setIsDraggingPip] = useState(false);
+    const pipDragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
+    const pipRef = useRef<HTMLDivElement>(null);
+
+    // Initialize PiP position to bottom-right on mount
+    useEffect(() => {
+        setPipPos({ x: window.innerWidth - 420, y: window.innerHeight - 320 });
+    }, []);
+
+    const handlePipMouseDown = useCallback((e: React.MouseEvent) => {
+        if ((e.target as HTMLElement).closest('button')) return;
+        e.preventDefault();
+        setIsDraggingPip(true);
+        pipDragStart.current = { x: e.clientX, y: e.clientY, posX: pipPos.x, posY: pipPos.y };
+    }, [pipPos]);
+
+    useEffect(() => {
+        if (!isDraggingPip) return;
+        const handleMouseMove = (e: MouseEvent) => {
+            const dx = e.clientX - pipDragStart.current.x;
+            const dy = e.clientY - pipDragStart.current.y;
+            setPipPos({
+                x: Math.max(0, Math.min(window.innerWidth - 200, pipDragStart.current.posX + dx)),
+                y: Math.max(0, Math.min(window.innerHeight - 100, pipDragStart.current.posY + dy)),
+            });
+        };
+        const handleMouseUp = () => setIsDraggingPip(false);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDraggingPip]);
 
     useEffect(() => {
         // Enforce cleanup on any camera switch
@@ -427,9 +466,25 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                 // x. Zone Alerts — force replace. If omitted entirely, it sets to [].
                 setZoneAlerts(data.zone_alerts || []);
 
-                // 3. LLM Analysis (every 8 frames or when backend sends it)
+                // 3. LLM / VLM Analysis
                 if (data.analysis) {
                     setLlmAnalysis(data.analysis);
+                } else if (data.status === 'running' && supremeMode) {
+                    // In Supreme mode the VLM takes time to respond.
+                    // Show a monitoring placeholder so the section is visible.
+                    // Use functional update to avoid stale closure on llmAnalysis.
+                    setLlmAnalysis((prev: any) => {
+                        if (prev) return prev; // Already have data, don't overwrite
+                        return {
+                            risk_score: 0,
+                            risk_level: 'LOW',
+                            label: 'Monitoring...',
+                            explanation: 'OLEYES Supreme is analyzing the scene. VLM will trigger when a suspect is near merchandise.',
+                            mode: 'supreme',
+                            theft_detected: false,
+                            confidence_score: 0,
+                        };
+                    });
                 }
 
                 // 4. Stop Condition
@@ -519,6 +574,19 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                                         <Play className="w-3 h-3" />
                                         EXECUTE
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLiveFeedPipId(liveFeedPipId === cam.id ? null : cam.id)}
+                                        className={`px-3 py-2 rounded flex items-center gap-2 transition-all border font-mono text-[10px] font-bold tracking-widest uppercase ${
+                                            liveFeedPipId === cam.id
+                                                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                                                : 'bg-amber-500/10 text-amber-500/80 border-amber-500/20 hover:bg-amber-500/20 hover:text-amber-400'
+                                        }`}
+                                        title={liveFeedPipId === cam.id ? 'Close Live Feed' : 'Open Live Feed PiP'}
+                                    >
+                                        <Monitor className="w-3 h-3" />
+                                        {liveFeedPipId === cam.id ? 'PiP ON' : 'LIVE FEED'}
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -594,7 +662,7 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                         </AnimatePresence>
 
                         {/* Logic Engine Dashboard */}
-                        {logicData && (
+                        {(logicData || llmAnalysis) && (
                             <div className="bg-white/80 dark:bg-[#0A0D2A]/80 rounded-2xl border border-slate-200 dark:border-[#1E2548] p-6 shadow-inner">
 
                                 {/* Situation Classification (Moved to Top) */}
@@ -1253,6 +1321,92 @@ export function YoloDetector({ sceneContext }: { sceneContext?: string }) {
                         </motion.div>
                     </div>
                 )}
+                </AnimatePresence>,
+                document.body
+            )}
+
+            {/* Live Feed PiP (Picture-in-Picture) Floating Window */}
+            {createPortal(
+                <AnimatePresence>
+                    {liveFeedPipId && (
+                        <motion.div
+                            ref={pipRef}
+                            initial={{ opacity: 0, scale: 0.8, y: 40 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.7, y: 40 }}
+                            transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+                            className={`fixed z-[200] flex flex-col rounded-xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-amber-500/40 backdrop-blur-sm ${
+                                isDraggingPip ? 'cursor-grabbing' : 'cursor-grab'
+                            }`}
+                            style={{
+                                left: pipPos.x,
+                                top: pipPos.y,
+                                width: pipExpanded ? 560 : 380,
+                                userSelect: 'none',
+                            }}
+                            onMouseDown={handlePipMouseDown}
+                        >
+                            {/* PiP Header Bar */}
+                            <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-[#0A0D2A] via-[#0F1235] to-[#0A0D2A] border-b border-amber-500/30 shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)] animate-pulse" />
+                                    </div>
+                                    <span className="text-amber-400 font-mono text-[10px] font-bold tracking-widest uppercase">
+                                        LIVE FEED — CAM_{liveFeedPipId.substring(0, 4)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setPipExpanded(!pipExpanded); }}
+                                        className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                        title={pipExpanded ? 'Shrink' : 'Expand'}
+                                    >
+                                        {pipExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setLiveFeedPipId(null); }}
+                                        className="p-1.5 rounded hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
+                                        title="Close PiP"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* PiP Video Feed */}
+                            <div className="relative bg-black aspect-video flex items-center justify-center">
+                                {/* Fallback / connecting state */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 font-mono text-[10px] uppercase tracking-widest gap-1 z-0">
+                                    <Monitor className="w-5 h-5 opacity-30 animate-pulse" />
+                                    <span className="opacity-40">CONNECTING...</span>
+                                </div>
+                                <img
+                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/cameras/${liveFeedPipId}/live?token=${localStorage.getItem('access_token')}`}
+                                    alt="Live PiP Feed"
+                                    className="w-full h-full object-contain relative z-10"
+                                    draggable={false}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                    onLoad={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'block';
+                                    }}
+                                />
+                                {/* Live indicator badge */}
+                                <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-md border border-red-500/30">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)] animate-pulse" />
+                                    <span className="text-red-400 font-mono text-[9px] font-bold tracking-widest">LIVE</span>
+                                </div>
+                            </div>
+
+                            {/* PiP Footer */}
+                            <div className="px-3 py-1.5 bg-[#060818] border-t border-[#1E2548]/50 flex items-center justify-between shrink-0">
+                                <span className="text-[9px] font-mono text-slate-600 tracking-widest uppercase">OLEYES PiP</span>
+                                <span className="text-[9px] font-mono text-amber-500/60 tracking-wider">DRAG TO MOVE</span>
+                            </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>,
                 document.body
             )}
